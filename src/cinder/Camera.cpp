@@ -169,16 +169,31 @@ void Camera::calcMatrices() const
 
 void Camera::calcModelView() const
 {
-	mW = -mViewDirection.normalized();
-	mU = mOrientation * Vec3f::xAxis();
-	mV = mOrientation * Vec3f::yAxis();
+	if (!isLeftHanded())
+	{
+		mW = -mViewDirection.normalized();
+		mU = mOrientation * Vec3f::xAxis();
+		mV = mOrientation * Vec3f::yAxis();
 	
-	Vec3f d( -mEyePoint.dot( mU ), -mEyePoint.dot( mV ), -mEyePoint.dot( mW ) );
-	float *m = mModelViewMatrix.m;
-	m[ 0] = mU.x; m[ 4] = mU.y; m[ 8] = mU.z; m[12] =  d.x;
-	m[ 1] = mV.x; m[ 5] = mV.y; m[ 9] = mV.z; m[13] =  d.y;
-	m[ 2] = mW.x; m[ 6] = mW.y; m[10] = mW.z; m[14] =  d.z;
-	m[ 3] = 0.0f; m[ 7] = 0.0f; m[11] = 0.0f; m[15] = 1.0f;
+		Vec3f d( -mEyePoint.dot( mU ), -mEyePoint.dot( mV ), -mEyePoint.dot( mW ) );
+		float *m = mModelViewMatrix.m;
+		m[ 0] = mU.x; m[ 4] = mU.y; m[ 8] = mU.z; m[12] =  d.x;
+		m[ 1] = mV.x; m[ 5] = mV.y; m[ 9] = mV.z; m[13] =  d.y;
+		m[ 2] = mW.x; m[ 6] = mW.y; m[10] = mW.z; m[14] =  d.z;
+		m[ 3] = 0.0f; m[ 7] = 0.0f; m[11] = 0.0f; m[15] = 1.0f;
+	}
+	else
+	{
+		Vec3f zaxis = mViewDirection.normalized();
+		Vec3f xaxis = mWorldUp.cross(zaxis).normalized();
+		Vec3f yaxis = zaxis.cross(xaxis);
+		Vec3f d( -xaxis.dot(mEyePoint), -yaxis.dot(mEyePoint), -zaxis.dot(mEyePoint) );
+
+		mModelViewMatrix.setColumn(0,Vec4f(xaxis.x,xaxis.y,xaxis.z,d.x));
+		mModelViewMatrix.setColumn(1,Vec4f(yaxis.x,yaxis.y,yaxis.z,d.y));
+		mModelViewMatrix.setColumn(2,Vec4f(zaxis.x,zaxis.y,zaxis.z,d.z));
+		mModelViewMatrix.setColumn(3,Vec4f(0.0f,0.0f,0.0f,1.0f));
+	}
 
 	mModelViewCached = true;
 	mInverseModelViewCached = false;
@@ -248,63 +263,75 @@ void CameraPersp::setPerspective( float horizFovDegrees, float aspectRatio, floa
 
 void CameraPersp::calcProjection() const
 {
-	mFrustumTop		=  mNearClip * math<float>::tan( (float)M_PI / 180.0f * mFov * 0.5f );
-	mFrustumBottom	= -mFrustumTop;
-	mFrustumRight	=  mFrustumTop * mAspectRatio;
-	mFrustumLeft	= -mFrustumRight;
+	if (!mIsLeftHanded)
+	{
+		mFrustumTop		=  mNearClip * math<float>::tan( (float)M_PI / 180.0f * mFov * 0.5f );
+		mFrustumBottom	= -mFrustumTop;
+		mFrustumRight	=  mFrustumTop * mAspectRatio;
+		mFrustumLeft	= -mFrustumRight;
 
-	// perform lens shift
-	if( mLensShift.y != 0.0f ) {
-		mFrustumTop = ci::lerp<float, float>(0.0f, 2.0f * mFrustumTop, 0.5f + 0.5f * mLensShift.y);
-		mFrustumBottom = ci::lerp<float, float>(2.0f * mFrustumBottom, 0.0f, 0.5f + 0.5f * mLensShift.y);
+		// perform lens shift
+		if( mLensShift.y != 0.0f ) {
+			mFrustumTop = ci::lerp<float, float>(0.0f, 2.0f * mFrustumTop, 0.5f + 0.5f * mLensShift.y);
+			mFrustumBottom = ci::lerp<float, float>(2.0f * mFrustumBottom, 0.0f, 0.5f + 0.5f * mLensShift.y);
+		}
+
+		if( mLensShift.x != 0.0f ) {
+			mFrustumRight = ci::lerp<float, float>(2.0f * mFrustumRight, 0.0f, 0.5f - 0.5f * mLensShift.x);
+			mFrustumLeft = ci::lerp<float, float>(0.0f, 2.0f * mFrustumLeft, 0.5f - 0.5f * mLensShift.x);
+		}
+
+		float *m = mProjectionMatrix.m;
+		m[ 0] =  2.0f * mNearClip / ( mFrustumRight - mFrustumLeft );
+		m[ 4] =  0.0f;
+		m[ 8] =  ( mFrustumRight + mFrustumLeft ) / ( mFrustumRight - mFrustumLeft );
+		m[12] =  0.0f;
+
+		m[ 1] =  0.0f;
+		m[ 5] =  2.0f * mNearClip / ( mFrustumTop - mFrustumBottom );
+		m[ 9] =  ( mFrustumTop + mFrustumBottom ) / ( mFrustumTop - mFrustumBottom );
+		m[13] =  0.0f;
+
+		m[ 2] =  0.0f;
+		m[ 6] =  0.0f;
+		m[10] = -( mFarClip + mNearClip ) / ( mFarClip - mNearClip );
+		m[14] = -2.0f * mFarClip * mNearClip / ( mFarClip - mNearClip );
+
+		m[ 3] =  0.0f;
+		m[ 7] =  0.0f;
+		m[11] = -1.0f;
+		m[15] =  0.0f;
+
+		m = mInverseProjectionMatrix.m;
+		m[ 0] =  ( mFrustumRight - mFrustumLeft ) / ( 2.0f * mNearClip );
+		m[ 4] =  0.0f;
+		m[ 8] =  0.0f;
+		m[12] =  ( mFrustumRight + mFrustumLeft ) / ( 2.0f * mNearClip );
+
+		m[ 1] =  0.0f;
+		m[ 5] =  ( mFrustumTop - mFrustumBottom ) / ( 2.0f * mNearClip );
+		m[ 9] =  0.0f;
+		m[13] =  ( mFrustumTop + mFrustumBottom ) / ( 2.0f * mNearClip );
+
+		m[ 2] =  0.0f;
+		m[ 6] =  0.0f;
+		m[10] =  0.0f;
+		m[14] = -1.0f;
+
+		m[ 3] =  0.0f;
+		m[ 7] =  0.0f;
+		m[11] = -( mFarClip - mNearClip ) / ( 2.0f * mFarClip*mNearClip );
+		m[15] =  ( mFarClip + mNearClip ) / ( 2.0f * mFarClip*mNearClip );
 	}
-
-	if( mLensShift.x != 0.0f ) {
-		mFrustumRight = ci::lerp<float, float>(2.0f * mFrustumRight, 0.0f, 0.5f - 0.5f * mLensShift.x);
-		mFrustumLeft = ci::lerp<float, float>(0.0f, 2.0f * mFrustumLeft, 0.5f - 0.5f * mLensShift.x);
+	else
+	{
+		float yScale = 1.0f / (tan(toRadians(mFov*0.5f)));
+		float xScale = yScale/ mAspectRatio;
+		mProjectionMatrix.setColumn(0,Vec4f(xScale,0.0f,0.0f,0.0f));
+		mProjectionMatrix.setColumn(1,Vec4f(0.0f,yScale,0.0f,0.0f));
+		mProjectionMatrix.setColumn(2,Vec4f(0.0f,0.0f,mFarClip / (mFarClip-mNearClip),(-mNearClip*mFarClip)/(mFarClip-mNearClip)));
+		mProjectionMatrix.setColumn(3,Vec4f(0.0f,0.0f,1.0f,0.0f));	
 	}
-
-	float *m = mProjectionMatrix.m;
-	m[ 0] =  2.0f * mNearClip / ( mFrustumRight - mFrustumLeft );
-	m[ 4] =  0.0f;
-	m[ 8] =  ( mFrustumRight + mFrustumLeft ) / ( mFrustumRight - mFrustumLeft );
-	m[12] =  0.0f;
-
-	m[ 1] =  0.0f;
-	m[ 5] =  2.0f * mNearClip / ( mFrustumTop - mFrustumBottom );
-	m[ 9] =  ( mFrustumTop + mFrustumBottom ) / ( mFrustumTop - mFrustumBottom );
-	m[13] =  0.0f;
-
-	m[ 2] =  0.0f;
-	m[ 6] =  0.0f;
-	m[10] = -( mFarClip + mNearClip ) / ( mFarClip - mNearClip );
-	m[14] = -2.0f * mFarClip * mNearClip / ( mFarClip - mNearClip );
-
-	m[ 3] =  0.0f;
-	m[ 7] =  0.0f;
-	m[11] = -1.0f;
-	m[15] =  0.0f;
-
-	m = mInverseProjectionMatrix.m;
-	m[ 0] =  ( mFrustumRight - mFrustumLeft ) / ( 2.0f * mNearClip );
-	m[ 4] =  0.0f;
-	m[ 8] =  0.0f;
-	m[12] =  ( mFrustumRight + mFrustumLeft ) / ( 2.0f * mNearClip );
-
-	m[ 1] =  0.0f;
-	m[ 5] =  ( mFrustumTop - mFrustumBottom ) / ( 2.0f * mNearClip );
-	m[ 9] =  0.0f;
-	m[13] =  ( mFrustumTop + mFrustumBottom ) / ( 2.0f * mNearClip );
-
-	m[ 2] =  0.0f;
-	m[ 6] =  0.0f;
-	m[10] =  0.0f;
-	m[14] = -1.0f;
-
-	m[ 3] =  0.0f;
-	m[ 7] =  0.0f;
-	m[11] = -( mFarClip - mNearClip ) / ( 2.0f * mFarClip*mNearClip );
-	m[15] =  ( mFarClip + mNearClip ) / ( 2.0f * mFarClip*mNearClip );
 
 	mProjectionCached = true;
 }

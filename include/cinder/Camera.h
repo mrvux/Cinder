@@ -35,7 +35,7 @@ namespace cinder {
 // By default the camera is looking down -Z
 class Camera {
   public:
-	Camera() : mModelViewCached(false), mProjectionCached(false), mInverseModelViewCached( false ), mWorldUp( Vec3f::yAxis() ) {}
+	Camera() : mModelViewCached(false), mProjectionCached(false), mInverseModelViewCached( false ), mWorldUp( Vec3f::yAxis() ), mIsLeftHanded(false) {}
 	virtual ~Camera() {}
 
 	Vec3f		getEyePoint() const { return mEyePoint; }
@@ -95,6 +95,11 @@ class Camera {
 
 	float	getScreenRadius( const class Sphere &sphere, float screenWidth, float screenHeight ) const;
 
+	//! Sets coordinate system as left handed (dx friendly), default is right handed
+	void  setLeftHanded() { mIsLeftHanded = true; }
+	void  setRightHanded() { mIsLeftHanded = false; }
+	bool  isLeftHanded() const { return mIsLeftHanded; }
+
   protected:
 	Vec3f	mEyePoint;
 	Vec3f	mViewDirection;
@@ -106,6 +111,8 @@ class Camera {
 	float	mAspectRatio;
 	float	mNearClip;		
 	float	mFarClip;
+
+	bool	mIsLeftHanded;
 
 	mutable Vec3f		mU;	// Right vector
 	mutable Vec3f		mV;	// Readjust up-vector
