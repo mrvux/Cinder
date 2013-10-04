@@ -21,6 +21,7 @@ DxDevice::Obj::~Obj()
 }
 
 DxDevice::DxDevice()
+	: mObj(shared_ptr<Obj>( new Obj() ) )
 {
 	UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
@@ -48,7 +49,7 @@ void DxDevice::Initialize(UINT flags)
 
 	D3D_FEATURE_LEVEL featureLevels[] =
     {
-	#if (ISWIN8)
+	#if (USE_D3D11_1)
 		// This requires Windows 8.
 		D3D_FEATURE_LEVEL_11_1,
 	#endif
@@ -64,7 +65,7 @@ void DxDevice::Initialize(UINT flags)
 	ID3D11Device* device;
 	ID3D11DeviceContext* context;
 
-	HRESULT hr = D3D11CreateDevice(NULL,D3D_DRIVER_TYPE_HARDWARE ,NULL,flags, featureLevels,0,D3D11_SDK_VERSION,&device,&mFeatureLevel,&context);
+	HRESULT hr = D3D11CreateDevice(NULL,D3D_DRIVER_TYPE_HARDWARE ,NULL,flags, featureLevels,ARRAYSIZE(featureLevels),D3D11_SDK_VERSION,&device,&mFeatureLevel,&context);
 
 	if (FAILED(hr))
 	{

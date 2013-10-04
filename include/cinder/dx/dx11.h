@@ -19,11 +19,11 @@ namespace cinder { namespace dx {
 
 //Typedef for device in case we use DirectX 11 or DirectX 11.1
 #if USE_D3D11_1
-	typedef ID3D11Device1 IDxDevice;
-	typedef ID3D11DeviceContext1 IDxContext;
+	typedef ID3D11Device1 IDXDevice;
+	typedef ID3D11DeviceContext1 IDXContext;
 #else
-	typedef ID3D11Device IDxDevice;
-	typedef ID3D11DeviceContext IDxContext;
+	typedef ID3D11Device IDXDevice;
+	typedef ID3D11DeviceContext IDXContext;
 #endif
 		
 
