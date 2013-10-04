@@ -1,7 +1,13 @@
+#include "cinder/Cinder.h"
 #include <d3d11.h>
 
-//TODO: in winrt it's always set to true
-#define USE_D3D11_1 1// ISWIN8 _WIN32_WINNT >= 0x0602
+
+#if defined( CINDER_WINRT )
+	#define USE_D3D11_1 1 //Don't change here
+#else
+	//We can specify here otherwise
+	#define USE_D3D11_1 1
+#endif
 
 #if USE_D3D11_1
 	#include <d3d11_1.h>

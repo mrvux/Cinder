@@ -125,7 +125,9 @@
     <ClCompile Include="..\src\cinder\DataSource.cpp" />
     <ClCompile Include="..\src\cinder\DataTarget.cpp" />
     <ClCompile Include="..\src\cinder\Display.cpp" />
+    <ClCompile Include="..\src\cinder\dx\BlendStates.cpp" />
     <ClCompile Include="..\src\cinder\dx\DDSTextureLoader.cpp" />
+    <ClCompile Include="..\src\cinder\dx\DepthStencilStates.cpp" />
     <ClCompile Include="..\src\cinder\dx\dx.cpp" />
     <ClCompile Include="..\src\cinder\dx\DxDevice.cpp" />
     <ClCompile Include="..\src\cinder\dx\DxRenderTarget.cpp" />
@@ -134,6 +136,7 @@
     <ClCompile Include="..\src\cinder\dx\DxTextureFont.cpp" />
     <ClCompile Include="..\src\cinder\dx\DxVbo.cpp" />
     <ClCompile Include="..\src\cinder\dx\HlslProg.cpp" />
+    <ClCompile Include="..\src\cinder\dx\RasterizerStates.cpp" />
     <ClCompile Include="..\src\cinder\Exception.cpp" />
     <ClCompile Include="..\src\cinder\Font.cpp" />
     <ClCompile Include="..\src\cinder\Frustum.cpp" />
@@ -247,8 +250,10 @@
     <ClInclude Include="..\include\cinder\Base64.h" />
     <ClInclude Include="..\include\cinder\CaptureImplDirectShow.h" />
     <ClInclude Include="..\include\cinder\Clipboard.h" />
+    <ClInclude Include="..\include\cinder\dx\BlendStates.h" />
     <ClInclude Include="..\include\cinder\dx\DDS.h" />
     <ClInclude Include="..\include\cinder\dx\DDSTextureLoader.h" />
+    <ClInclude Include="..\include\cinder\dx\DepthStencilStates.h" />
     <ClInclude Include="..\include\cinder\dx\dx.h" />
     <ClInclude Include="..\include\cinder\dx\dx11.h" />
     <ClInclude Include="..\include\cinder\dx\DxDevice.h" />
@@ -260,6 +265,7 @@
     <ClInclude Include="..\include\cinder\dx\gldx.h" />
     <ClInclude Include="..\include\cinder\dx\HlslProg.h" />
     <ClInclude Include="..\include\cinder\dx\PlatformHelpers.h" />
+    <ClInclude Include="..\include\cinder\dx\RasterizerStates.h" />
     <ClInclude Include="..\include\cinder\Filesystem.h" />
     <ClInclude Include="..\include\cinder\Frustum.h" />
     <ClInclude Include="..\include\cinder\gl\StereoAutoFocuser.h" />
