@@ -4,6 +4,9 @@
 
 namespace cinder { namespace dx {
 
+class DxDevice;
+typedef std::shared_ptr<DxDevice> DxDeviceRef;
+
 class DxDevice
 {
 public:

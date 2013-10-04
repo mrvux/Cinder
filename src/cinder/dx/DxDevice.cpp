@@ -1,5 +1,7 @@
 #include "cinder/dx/DxDevice.h"
 
+using namespace std;
+
 namespace cinder { namespace dx {
 
 DxDevice::Obj::Obj()
@@ -30,6 +32,7 @@ DxDevice::DxDevice()
 }
 
 DxDevice::DxDevice(UINT flags)
+	: mObj(shared_ptr<Obj>( new Obj() ) )
 {
 	Initialize(flags);
 }
