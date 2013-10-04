@@ -218,7 +218,7 @@ void RenderTarget::init()
 	{
 		DXGI_FORMAT colorFormat = getFormat().getColorInternalFormat();
 		UINT sampleCount = getFormat().getCoverageSamples();
-		getDxRenderer()->md3dDevice->CheckMultisampleQualityLevels( colorFormat, sampleCount, &numQualityLevels );
+		getDxRenderer()->GetDevice()->CheckMultisampleQualityLevels( colorFormat, sampleCount, &numQualityLevels );
 	}
 	
 	//static bool csaaSupported = ( GLEE_NV_framebuffer_multisample_coverage != 0 );
@@ -272,7 +272,7 @@ void RenderTarget::init()
 		if( colorTex ) {
 			ID3D11Texture2D* texture = colorTex->getDxTexture();
 			ID3D11RenderTargetView *rtv = nullptr;
-			hr = getDxRenderer()->md3dDevice->CreateRenderTargetView( texture, NULL, &rtv );
+			hr = getDxRenderer()->GetDevice()->CreateRenderTargetView( texture, NULL, &rtv );
 			if( FAILED( hr ) ) {
 				__debugbreak();
 			}
@@ -327,7 +327,7 @@ void RenderTarget::init()
 			//@LATER: dsvDesc.ViewDimension = ( texDesc.SampleDesc.Count > 1 ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D );
 			dsvDesc.Texture2D.MipSlice = 0;
 			ID3D11DepthStencilView* depthView = nullptr;
-			hr = getDxRenderer()->md3dDevice->CreateDepthStencilView( tex->getDxTexture(), &dsvDesc, &depthView );
+			hr = getDxRenderer()->GetDevice()->CreateDepthStencilView( tex->getDxTexture(), &dsvDesc, &depthView );
 			if( FAILED( hr ) ) {
 				__debugbreak();
 			}
@@ -477,7 +477,7 @@ void RenderTarget::bindTexture( int textureUnit, int attachment )
 	//getDxRenderer()->mDeviceContext->PSSetShaderResources(textureUnit, 1, &mObj->mColorSRVs[attachment]);
 	dx::TextureRef colorTexture = mObj->mColorTextures[attachment];
 	ID3D11ShaderResourceView* srv = colorTexture->getDxShaderResourceView();
-	getDxRenderer()->mDeviceContext->PSSetShaderResources( textureUnit, 1, &srv );
+	getDxRenderer()->GetContext()->PSSetShaderResources( textureUnit, 1, &srv );
 	updateMipmaps( false, attachment );
 }
 
@@ -545,7 +545,7 @@ void RenderTarget::bindFramebuffer()
 {
 	//getDxRenderer()->mDeviceContext->OMSetRenderTargets(mObj->mColorSRVs.size(), &mObj->mRenderTargets[0], mObj->mDepthView);
 	UINT numViews = (UINT)mObj->mColorTextures.size();
-	getDxRenderer()->mDeviceContext->OMSetRenderTargets( numViews, &mObj->mRenderTargets[0], mObj->mDepthView );
+	getDxRenderer()->GetContext()->OMSetRenderTargets( numViews, &mObj->mRenderTargets[0], mObj->mDepthView );
 
 	//GL_SUFFIX(glBindFramebuffer)( GL_SUFFIX(GL_FRAMEBUFFER_), mObj->mId );
 	//if( mObj->mResolveFramebufferId ) {
@@ -558,7 +558,7 @@ void RenderTarget::bindFramebuffer()
 
 void RenderTarget::unbindFramebuffer()
 {
-	getDxRenderer()->mDeviceContext->OMSetRenderTargets( 1, &getDxRenderer()->mMainFramebuffer, getDxRenderer()->mDepthStencilView );
+	getDxRenderer()->GetContext()->OMSetRenderTargets( 1, &getDxRenderer()->mMainFramebuffer, getDxRenderer()->mDepthStencilView );
 	//GL_SUFFIX(glBindFramebuffer)( GL_SUFFIX(GL_FRAMEBUFFER_), 0 );
 }
 

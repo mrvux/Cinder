@@ -335,7 +335,7 @@ void Texture::init( const unsigned char *srcData, DXGI_FORMAT srcDataFormat, con
 	mSamplerDesc.BorderColor[3] = 0;
 	mSamplerDesc.MinLOD = 0;
 	mSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	HRESULT hr = getDxRenderer()->md3dDevice->CreateSamplerState(&mSamplerDesc, &mSamplerState);
+	HRESULT hr = getDxRenderer()->GetDevice()->CreateSamplerState(&mSamplerDesc, &mSamplerState);
 	if(hr != S_OK) {
 		__debugbreak();
 	}
@@ -366,13 +366,13 @@ void Texture::init( const unsigned char *srcData, DXGI_FORMAT srcDataFormat, con
 		subData.pSysMem = srcData;
 		subData.SysMemPitch = mWidth*sizeof(unsigned char)*numChannels;
 		subData.SysMemSlicePitch = subData.SysMemPitch*mHeight;
-		hr = getDxRenderer()->md3dDevice->CreateTexture2D( &texDesc, &subData, &mDxTexture );
+		hr = getDxRenderer()->GetDevice()->CreateTexture2D( &texDesc, &subData, &mDxTexture );
 		if( FAILED( hr ) ) {
 			__debugbreak();
 		}
 	}
 	else {
-		hr = getDxRenderer()->md3dDevice->CreateTexture2D( &texDesc, nullptr, &mDxTexture );
+		hr = getDxRenderer()->GetDevice()->CreateTexture2D( &texDesc, nullptr, &mDxTexture );
 		if( FAILED( hr ) ) {
 			__debugbreak();
 		}
@@ -385,7 +385,7 @@ void Texture::init( const unsigned char *srcData, DXGI_FORMAT srcDataFormat, con
 		srvDesc.ViewDimension = ( texDesc.SampleDesc.Count > 1 ? D3D11_SRV_DIMENSION_TEXTURE2DMS : D3D11_SRV_DIMENSION_TEXTURE2D );
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = -1;
-		hr = getDxRenderer()->md3dDevice->CreateShaderResourceView( mDxTexture, &srvDesc, &mSRV );
+		hr = getDxRenderer()->GetDevice()->CreateShaderResourceView( mDxTexture, &srvDesc, &mSRV );
 		if( FAILED( hr ) ) {
 			__debugbreak();
 		}
@@ -410,7 +410,7 @@ void Texture::init( const float *srcData, DXGI_FORMAT srcDataFormat, const Forma
 	mSamplerDesc.BorderColor[3] = 0;
 	mSamplerDesc.MinLOD = 0;
 	mSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	HRESULT hr = getDxRenderer()->md3dDevice->CreateSamplerState(&mSamplerDesc, &mSamplerState);
+	HRESULT hr = getDxRenderer()->GetDevice()->CreateSamplerState(&mSamplerDesc, &mSamplerState);
 	if( FAILED( hr ) ) {
 		__debugbreak();
 	}
@@ -436,13 +436,13 @@ void Texture::init( const float *srcData, DXGI_FORMAT srcDataFormat, const Forma
 		subData.pSysMem = srcData;
 		subData.SysMemPitch = mWidth*sizeof(float)*numChannels;
 		subData.SysMemSlicePitch = subData.SysMemPitch*mHeight;
-		hr = getDxRenderer()->md3dDevice->CreateTexture2D( &desc, &subData, &mDxTexture );
+		hr = getDxRenderer()->GetDevice()->CreateTexture2D( &desc, &subData, &mDxTexture );
 		if( FAILED( hr ) ) {
 			__debugbreak();
 		}
 	}
 	else {
-		hr = getDxRenderer()->md3dDevice->CreateTexture2D( &desc, nullptr, &mDxTexture );
+		hr = getDxRenderer()->GetDevice()->CreateTexture2D( &desc, nullptr, &mDxTexture );
 		if( FAILED( hr ) ) {
 			__debugbreak();
 		}
@@ -454,7 +454,7 @@ void Texture::init( const float *srcData, DXGI_FORMAT srcDataFormat, const Forma
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.Texture2D.MipLevels = -1;
-	hr = getDxRenderer()->md3dDevice->CreateShaderResourceView(mDxTexture, &srvDesc, &mSRV);
+	hr = getDxRenderer()->GetDevice()->CreateShaderResourceView(mDxTexture, &srvDesc, &mSRV);
 	if( FAILED( hr ) ) {
 		__debugbreak();
 	}
@@ -602,7 +602,7 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 	mSamplerDesc.BorderColor[3] = 0;
 	mSamplerDesc.MinLOD = 0;
 	mSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	HRESULT hr = getDxRenderer()->md3dDevice->CreateSamplerState(&mSamplerDesc, &mSamplerState);
+	HRESULT hr = getDxRenderer()->GetDevice()->CreateSamplerState(&mSamplerDesc, &mSamplerState);
 	if(hr != S_OK) {
 		__debugbreak();
 	}
@@ -634,7 +634,7 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 		// subData.SysMemSlicePitch = 0;//subData.SysMemPitch * mHeight;
 		//
 		subData.SysMemSlicePitch = subData.SysMemPitch*mHeight;
-		getDxRenderer()->md3dDevice->CreateTexture2D(&texDesc, &subData, &mDxTexture);
+		getDxRenderer()->GetDevice()->CreateTexture2D(&texDesc, &subData, &mDxTexture);
 	}
 	else if( ImageIo::UINT16 == imageSource->getDataType() ) {
 		const int numChannels = 4;
@@ -644,7 +644,7 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 		subData.SysMemPitch = numChannels*sizeof(uint16_t)*mWidth;
 		texDesc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
 		subData.SysMemSlicePitch = subData.SysMemPitch*mHeight;
-		getDxRenderer()->md3dDevice->CreateTexture2D(&texDesc, &subData, &mDxTexture);
+		getDxRenderer()->GetDevice()->CreateTexture2D(&texDesc, &subData, &mDxTexture);
 	}
 	else {
 		const int numChannels = dataFormatNumChannels( dataFormat );
@@ -664,7 +664,7 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 		//	subData.SysMemPitch = numChannels*sizeof(float)*mWidth;
 		//}
 		subData.SysMemSlicePitch = subData.SysMemPitch*mHeight;
-		getDxRenderer()->md3dDevice->CreateTexture2D(&texDesc, &subData, &mDxTexture);
+		getDxRenderer()->GetDevice()->CreateTexture2D(&texDesc, &subData, &mDxTexture);
 	}
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -673,7 +673,7 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.Texture2D.MipLevels = -1;
-	getDxRenderer()->md3dDevice->CreateShaderResourceView(mDxTexture, &srvDesc, &mSRV);
+	getDxRenderer()->GetDevice()->CreateShaderResourceView(mDxTexture, &srvDesc, &mSRV);
 }
 
 void Texture::update( const Surface &surface )
@@ -698,7 +698,7 @@ void Texture::update( const Surface &surface )
 
 	UINT srcRowPitch = surface.getWidth()*dataFormatNumChannels( dataFormat )*sizeof(uint8_t);
 	UINT srcDepthPitch = 0;
-	dx->mDeviceContext->UpdateSubresource( mDxTexture, 0, &box, surface.getData(), srcRowPitch, srcDepthPitch );
+	dx->GetContext()->UpdateSubresource( mDxTexture, 0, &box, surface.getData(), srcRowPitch, srcDepthPitch );
 }
 
 void Texture::update( const Surface32f &surface )
@@ -723,7 +723,7 @@ void Texture::update( const Surface32f &surface )
 
 	UINT srcRowPitch = surface.getWidth()*dataFormatNumChannels( dataFormat )*sizeof(float);
 	UINT srcDepthPitch = 0;
-	dx->mDeviceContext->UpdateSubresource( mDxTexture, 0, &box, surface.getData(), srcRowPitch, srcDepthPitch );
+	dx->GetContext()->UpdateSubresource( mDxTexture, 0, &box, surface.getData(), srcRowPitch, srcDepthPitch );
 }
 
 void Texture::update( const Surface &surface, const Area &area )
@@ -746,7 +746,7 @@ void Texture::update( const Surface &surface, const Area &area )
 
 	UINT srcRowPitch = surface.getWidth()*dataFormatNumChannels( dataFormat )*sizeof(uint8_t);
 	UINT srcDepthPitch = 0;
-	dx->mDeviceContext->UpdateSubresource( mDxTexture, 0, &box, surface.getData( area.getUL() ), srcRowPitch, srcDepthPitch );
+	dx->GetContext()->UpdateSubresource( mDxTexture, 0, &box, surface.getData( area.getUL() ), srcRowPitch, srcDepthPitch );
 }
 
 void Texture::update( const Channel &channel )
@@ -775,7 +775,7 @@ void Texture::update( const Channel32f &channel )
 
 	UINT srcRowPitch = channel.getWidth()*sizeof(float);
 	UINT srcDepthPitch = 0;
-	getDxRenderer()->mDeviceContext->UpdateSubresource( mDxTexture, 0, &box, channel.getData(), srcRowPitch, srcDepthPitch );
+	getDxRenderer()->GetContext()->UpdateSubresource( mDxTexture, 0, &box, channel.getData(), srcRowPitch, srcDepthPitch );
 }
 
 void Texture::update( const Channel8u &channel, const Area &area )
@@ -800,10 +800,10 @@ void Texture::update( const Channel8u &channel, const Area &area )
 				src += inc;
 			}
 		}
-		getDxRenderer()->mDeviceContext->UpdateSubresource( mDxTexture, 0, &box, data.get(), area.getWidth(), 0 );
+		getDxRenderer()->GetContext()->UpdateSubresource( mDxTexture, 0, &box, data.get(), area.getWidth(), 0 );
 	}
 	else {
-		getDxRenderer()->mDeviceContext->UpdateSubresource( mDxTexture, 0, &box, channel.getData( area.getUL() ), area.getWidth(), 0 );
+		getDxRenderer()->GetContext()->UpdateSubresource( mDxTexture, 0, &box, channel.getData( area.getUL() ), area.getWidth(), 0 );
 	}
 }
 
@@ -977,7 +977,7 @@ TextureRef Texture::loadDds( IStreamRef ddsStream, Format format )
 		throw TextureDataExc("Not enough memory to load DDS");
 	}
 	ddsStream->read(data);
-	DirectX::CreateDDSTextureFromMemory(dxRenderer->md3dDevice, data, ddsStream->size(), (ID3D11Resource**)&texture->mDxTexture, &texture->mSRV);
+	DirectX::CreateDDSTextureFromMemory(dxRenderer->GetDevice(), data, ddsStream->size(), (ID3D11Resource**)&texture->mDxTexture, &texture->mSRV);
 	free(data);
 	texture->mDoNotDispose = false;
 	texture->mWidth = texture->getWidth();
@@ -989,21 +989,21 @@ void Texture::setWrapS( D3D11_TEXTURE_ADDRESS_MODE wrapS )
 {
 	mSamplerState->Release();
 	mSamplerDesc.AddressU = wrapS;
-	getDxRenderer()->md3dDevice->CreateSamplerState(&mSamplerDesc, &mSamplerState);
+	getDxRenderer()->GetDevice()->CreateSamplerState(&mSamplerDesc, &mSamplerState);
 }
 
 void Texture::setWrapT( D3D11_TEXTURE_ADDRESS_MODE wrapT )
 {
 	mSamplerState->Release();
 	mSamplerDesc.AddressV = wrapT;
-	getDxRenderer()->md3dDevice->CreateSamplerState(&mSamplerDesc, &mSamplerState);
+	getDxRenderer()->GetDevice()->CreateSamplerState(&mSamplerDesc, &mSamplerState);
 }
 
 void Texture::setFilter( D3D11_FILTER filter )
 {
 	mSamplerState->Release();
 	mSamplerDesc.Filter = filter;
-	getDxRenderer()->md3dDevice->CreateSamplerState(&mSamplerDesc, &mSamplerState);
+	getDxRenderer()->GetDevice()->CreateSamplerState(&mSamplerDesc, &mSamplerState);
 }
 
 void Texture::setCleanTexCoords( float maxU, float maxV )
@@ -1133,14 +1133,14 @@ float Texture::getMaxV() const
 
 void Texture::bind( UINT textureUnit ) const
 {
-	getDxRenderer()->mDeviceContext->PSSetShaderResources(textureUnit, 1, &mSRV);
-	getDxRenderer()->mDeviceContext->PSSetSamplers(textureUnit, 1, &mSamplerState);
+	getDxRenderer()->GetContext()->PSSetShaderResources(textureUnit, 1, &mSRV);
+	getDxRenderer()->GetContext()->PSSetSamplers(textureUnit, 1, &mSamplerState);
 }
 
 void Texture::unbind( UINT textureUnit ) const
 {
 	ID3D11ShaderResourceView *none = NULL;
-	getDxRenderer()->mDeviceContext->PSSetShaderResources(0, 1, &none);
+	getDxRenderer()->GetContext()->PSSetShaderResources(0, 1, &none);
 }
 
 /////////////////////////////////////////////////////////////////////////////////

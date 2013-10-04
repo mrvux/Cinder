@@ -104,10 +104,10 @@ void Vbo::bufferData( size_t size, const void *data, D3D11_USAGE usage, D3D11_BI
 		initialData.pSysMem = data;
 		initialData.SysMemPitch = 0;
 		initialData.SysMemSlicePitch = 0;
-		getDxRenderer()->md3dDevice->CreateBuffer(&bufferDesc, &initialData, &mObj->mId);
+		getDxRenderer()->GetDevice()->CreateBuffer(&bufferDesc, &initialData, &mObj->mId);
 	}
 	else
-		getDxRenderer()->md3dDevice->CreateBuffer(&bufferDesc, NULL, &mObj->mId);
+		getDxRenderer()->GetDevice()->CreateBuffer(&bufferDesc, NULL, &mObj->mId);
 }
 
 void Vbo::bufferSubData( ptrdiff_t offset, size_t size, const void *data )
@@ -122,21 +122,21 @@ void Vbo::bufferSubData( ptrdiff_t offset, size_t size, const void *data )
 	//getDxRenderer()->mDeviceContext->UpdateSubresource(mObj->mId, 0, &box, data, 0, 0);
 	auto dx = getDxRenderer();
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	dx->mDeviceContext->Map(mObj->mId, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	dx->GetContext()->Map(mObj->mId, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	memcpy((char*)mappedResource.pData + offset, data, size);
-	dx->mDeviceContext->Unmap(mObj->mId, 0);
+	dx->GetContext()->Unmap(mObj->mId, 0);
 }
 
 uint8_t* Vbo::map( D3D11_MAP access )
 {
 	D3D11_MAPPED_SUBRESOURCE subResource;
-	getDxRenderer()->mDeviceContext->Map(mObj->mId, 0, access, 0, &subResource);
+	getDxRenderer()->GetContext()->Map(mObj->mId, 0, access, 0, &subResource);
 	return reinterpret_cast<uint8_t*>(subResource.pData);
 }
 
 void Vbo::unmap()
 {
-	getDxRenderer()->mDeviceContext->Unmap(mObj->mId, 0);
+	getDxRenderer()->GetContext()->Unmap(mObj->mId, 0);
 }
 
 
@@ -676,17 +676,17 @@ void VboMesh::initializeBuffers( bool staticDataPlanar )
 
 	//HRESULT hr = getDxRenderer()->md3dDevice->CreateInputLayout(ieDesc, std::max(elementCount, 4), Shaders::StandardVboLayoutVS, sizeof(Shaders::StandardVboLayoutVS), &mObj->mInputLayout);
 	HRESULT hr = E_FAIL;
-	if( D3D_FEATURE_LEVEL_9_1 == getDxRenderer()->mFeatureLevel ) {
-		hr = getDxRenderer()->md3dDevice->CreateInputLayout(ieDesc, std::max(elementCount, 4), Shaders::Dx9_1::StandardVboLayoutVS, sizeof(Shaders::Dx9_1::StandardVboLayoutVS), &mObj->mInputLayout);
+	if( D3D_FEATURE_LEVEL_9_1 == getDxRenderer()->GetFeatureLevel() ) {
+		hr = getDxRenderer()->GetDevice()->CreateInputLayout(ieDesc, std::max(elementCount, 4), Shaders::Dx9_1::StandardVboLayoutVS, sizeof(Shaders::Dx9_1::StandardVboLayoutVS), &mObj->mInputLayout);
 	}
-	else if( D3D_FEATURE_LEVEL_9_3 == getDxRenderer()->mFeatureLevel ) {
-		hr = getDxRenderer()->md3dDevice->CreateInputLayout(ieDesc, std::max(elementCount, 4), Shaders::Dx9_3::StandardVboLayoutVS, sizeof(Shaders::Dx9_3::StandardVboLayoutVS), &mObj->mInputLayout);
+	else if( D3D_FEATURE_LEVEL_9_3 == getDxRenderer()->GetFeatureLevel() ) {
+		hr = getDxRenderer()->GetDevice()->CreateInputLayout(ieDesc, std::max(elementCount, 4), Shaders::Dx9_3::StandardVboLayoutVS, sizeof(Shaders::Dx9_3::StandardVboLayoutVS), &mObj->mInputLayout);
 	}
-	else if( D3D_FEATURE_LEVEL_10_1 == getDxRenderer()->mFeatureLevel ) {
-		hr = getDxRenderer()->md3dDevice->CreateInputLayout(ieDesc, std::max(elementCount, 4), Shaders::Dx10::StandardVboLayoutVS, sizeof(Shaders::Dx10::StandardVboLayoutVS), &mObj->mInputLayout);
+	else if( D3D_FEATURE_LEVEL_10_1 == getDxRenderer()->GetFeatureLevel() ) {
+		hr = getDxRenderer()->GetDevice()->CreateInputLayout(ieDesc, std::max(elementCount, 4), Shaders::Dx10::StandardVboLayoutVS, sizeof(Shaders::Dx10::StandardVboLayoutVS), &mObj->mInputLayout);
 	}
-	else if( D3D_FEATURE_LEVEL_11_0 == getDxRenderer()->mFeatureLevel || D3D_FEATURE_LEVEL_11_1 == getDxRenderer()->mFeatureLevel ) {
-		hr = getDxRenderer()->md3dDevice->CreateInputLayout(ieDesc, std::max(elementCount, 4), Shaders::Dx11::StandardVboLayoutVS, sizeof(Shaders::Dx11::StandardVboLayoutVS), &mObj->mInputLayout);
+	else if( D3D_FEATURE_LEVEL_11_0 == getDxRenderer()->GetFeatureLevel() || D3D_FEATURE_LEVEL_11_1 == getDxRenderer()->GetFeatureLevel() ) {
+		hr = getDxRenderer()->GetDevice()->CreateInputLayout(ieDesc, std::max(elementCount, 4), Shaders::Dx11::StandardVboLayoutVS, sizeof(Shaders::Dx11::StandardVboLayoutVS), &mObj->mInputLayout);
 	}		
 		
 	if(hr != S_OK) {
@@ -779,7 +779,7 @@ void VboMesh::bindAllData() const
 		if( ( buffer == STATIC_BUFFER ) ? mObj->mLayout.hasStaticPositions() : mObj->mLayout.hasDynamicPositions() ) {
 			UINT oldStride = stride;
 			stride = std::max<UINT>(stride, sizeof(float) * 3);
-			dx->mDeviceContext->IASetVertexBuffers(0, 1, &actualBuffer, &stride, &offset);
+			dx->GetContext()->IASetVertexBuffers(0, 1, &actualBuffer, &stride, &offset);
 			stride = oldStride;
 			//glVertexPointer( 3, GL_FLOAT, stride, (const GLvoid*)mObj->mPositionOffset );
 		}
@@ -788,7 +788,7 @@ void VboMesh::bindAllData() const
 		if( ( ( buffer == STATIC_BUFFER ) ? mObj->mLayout.hasStaticNormals() : mObj->mLayout.hasDynamicNormals() ) ) {
 			UINT oldStride = stride;
 			stride = std::max<UINT>(stride, sizeof(float) * 3);
-			dx->mDeviceContext->IASetVertexBuffers(1, 1, &actualBuffer, &stride, &offset);
+			dx->GetContext()->IASetVertexBuffers(1, 1, &actualBuffer, &stride, &offset);
 			stride = oldStride;
 			//glNormalPointer( GL_FLOAT, stride, ( const GLvoid *)mObj->mNormalOffset );
 		}
@@ -798,14 +798,14 @@ void VboMesh::bindAllData() const
 		if( ( ( buffer == STATIC_BUFFER ) ? mObj->mLayout.hasStaticColorsRGB() : mObj->mLayout.hasDynamicColorsRGB() ) ) {
 			UINT oldStride = stride;
 			stride = std::max<UINT>(stride, sizeof(float) * 3);
-			dx->mDeviceContext->IASetVertexBuffers(2, 1, &actualBuffer, &stride, &offset);
+			dx->GetContext()->IASetVertexBuffers(2, 1, &actualBuffer, &stride, &offset);
 			stride = oldStride;
 			//glColorPointer( 3, GL_FLOAT, stride, ( const GLvoid *)mObj->mColorRGBOffset );
 		}
 		else if( ( ( buffer == STATIC_BUFFER ) ? mObj->mLayout.hasStaticColorsRGBA() : mObj->mLayout.hasDynamicColorsRGBA() ) ) {
 			UINT oldStride = stride;
 			stride = std::max<UINT>(stride, sizeof(float) * 4);
-			dx->mDeviceContext->IASetVertexBuffers(2, 1, &actualBuffer, &stride, &offset);
+			dx->GetContext()->IASetVertexBuffers(2, 1, &actualBuffer, &stride, &offset);
 			stride = oldStride;
 			//glColorPointer( 4, GL_FLOAT, stride, ( const GLvoid *)mObj->mColorRGBAOffset );
 		}
@@ -816,7 +816,7 @@ void VboMesh::bindAllData() const
 			if( ( buffer == STATIC_BUFFER ) ? mObj->mLayout.hasStaticTexCoords2d( t ) : mObj->mLayout.hasDynamicTexCoords2d( t ) ) {
 				UINT oldStride = stride;
 				stride = std::max<UINT>(stride, sizeof(float) * 2);
-				dx->mDeviceContext->IASetVertexBuffers(3 + elementCount++, 1, &actualBuffer, &stride, &offset);
+				dx->GetContext()->IASetVertexBuffers(3 + elementCount++, 1, &actualBuffer, &stride, &offset);
 				stride = oldStride;
 				//glClientActiveTexture( GL_TEXTURE0 + t );
 				//glTexCoordPointer( 2, GL_FLOAT, stride, (const GLvoid *)mObj->mTexCoordOffset[t] );
@@ -824,14 +824,14 @@ void VboMesh::bindAllData() const
 			else if( ( buffer == STATIC_BUFFER ) ? mObj->mLayout.hasStaticTexCoords3d( t ) : mObj->mLayout.hasDynamicTexCoords3d( t ) ) {
 				UINT oldStride = stride;
 				stride = std::max<UINT>(stride, sizeof(float) * 3);
-				dx->mDeviceContext->IASetVertexBuffers(3 + elementCount++, 1, &actualBuffer, &stride, &offset);
+				dx->GetContext()->IASetVertexBuffers(3 + elementCount++, 1, &actualBuffer, &stride, &offset);
 				stride = oldStride;
 				//glClientActiveTexture( GL_TEXTURE0 + t );
 				//glTexCoordPointer( 3, GL_FLOAT, stride, (const GLvoid *)mObj->mTexCoordOffset[t] );
 			}
 		}	
 	}
-	dx->mDeviceContext->IASetInputLayout(mObj->mInputLayout);
+	dx->GetContext()->IASetInputLayout(mObj->mInputLayout);
 //
 //	for( int buffer = STATIC_BUFFER; buffer <= DYNAMIC_BUFFER; ++buffer ) {
 //		if( ! mObj->mBuffers[buffer] ) continue;
@@ -854,7 +854,7 @@ void VboMesh::bindAllData() const
 
 void VboMesh::bindIndexBuffer() const
 {
-	getDxRenderer()->mDeviceContext->IASetIndexBuffer(mObj->mBuffers[INDEX_BUFFER].getId(), DXGI_FORMAT_R32_UINT, 0);
+	getDxRenderer()->GetContext()->IASetIndexBuffer(mObj->mBuffers[INDEX_BUFFER].getId(), DXGI_FORMAT_R32_UINT, 0);
 	//mObj->mBuffers[INDEX_BUFFER].bind();
 }
 

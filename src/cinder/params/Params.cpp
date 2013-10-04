@@ -159,7 +159,7 @@ class AntMgr {
 		if( fontScale > 1 )
 			TwDefine( (string(" GLOBAL fontscaling= ") + toString( fontScale )).c_str() );
 #if defined( USE_DIRECTX )
-		if( ! TwInit( TW_DIRECT3D11, dx::getDxRenderer()->md3dDevice ) )
+		if( ! TwInit( TW_DIRECT3D11, dx::getDxRenderer()->GetDevice() ) )
 			throw Exception();
 #else
 		if( ! TwInit( TW_OPENGL, NULL ) ) {

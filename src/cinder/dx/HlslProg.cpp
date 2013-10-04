@@ -45,7 +45,7 @@ HlslProg::Cbo::Cbo(UINT slot, UINT size) : mSlot(slot)
 	bufferDesc.MiscFlags = 0;
 	bufferDesc.StructureByteStride = 0;
 
-	getDxRenderer()->md3dDevice->CreateBuffer(&bufferDesc, NULL, &mCBuffer);
+	getDxRenderer()->GetDevice()->CreateBuffer(&bufferDesc, NULL, &mCBuffer);
 }
 
 HlslProg::Cbo::~Cbo()
@@ -69,7 +69,7 @@ HlslProg::HlslProg(
 )
 : mObj( shared_ptr<Obj>( new Obj ) )
 {
-	auto& d3ddevice = getDxRenderer()->md3dDevice;
+	IDXDevice* d3ddevice = getDxRenderer()->GetDevice();
 
 	if( vertexShader ) {
 		d3ddevice->CreateVertexShader(vertexShader->getBuffer().getData(), vertexShader->getBuffer().getDataSize(), NULL, &mObj->mVS);
@@ -89,7 +89,7 @@ HlslProg::HlslProg(
 )
 : mObj( shared_ptr<Obj>( new Obj ) )
 {
-	auto& d3ddevice = getDxRenderer()->md3dDevice;
+	IDXDevice* d3ddevice = getDxRenderer()->GetDevice();
 
 	if( vertexShader ) {
 		d3ddevice->CreateVertexShader( vertexShader, vertexShaderSize, NULL, &mObj->mVS );
@@ -169,21 +169,21 @@ void HlslProg::bind() const
 	auto dx = getDxRenderer();
 	//bind the shaders
 	if(mObj->mVS)
-		dx->mDeviceContext->VSSetShader(mObj->mVS, NULL, 0);
+		dx->GetContext()->VSSetShader(mObj->mVS, NULL, 0);
 	if(mObj->mPS)
-		dx->mDeviceContext->PSSetShader(mObj->mPS, NULL, 0);
+		dx->GetContext()->PSSetShader(mObj->mPS, NULL, 0);
 	if(mObj->mGS)
-		dx->mDeviceContext->GSSetShader(mObj->mGS, NULL, 0);
+		dx->GetContext()->GSSetShader(mObj->mGS, NULL, 0);
 
 	//bind the buffers
 	for(unsigned i = 0; i < mObj->mCBuffersVertex.size(); ++i)
-		dx->mDeviceContext->VSSetConstantBuffers(mObj->mCBuffersVertex[i]->mSlot, 1, &mObj->mCBuffersVertex[i]->mCBuffer);
+		dx->GetContext()->VSSetConstantBuffers(mObj->mCBuffersVertex[i]->mSlot, 1, &mObj->mCBuffersVertex[i]->mCBuffer);
 	
 	for(unsigned i = 0; i < mObj->mCBuffersFragment.size(); ++i)
-		dx->mDeviceContext->PSSetConstantBuffers(mObj->mCBuffersFragment[i]->mSlot, 1, &mObj->mCBuffersFragment[i]->mCBuffer);
+		dx->GetContext()->PSSetConstantBuffers(mObj->mCBuffersFragment[i]->mSlot, 1, &mObj->mCBuffersFragment[i]->mCBuffer);
 		
 	for(unsigned i = 0; i < mObj->mCBuffersGeometry.size(); ++i)
-		dx->mDeviceContext->GSSetConstantBuffers(mObj->mCBuffersGeometry[i]->mSlot, 1, &mObj->mCBuffersGeometry[i]->mCBuffer);
+		dx->GetContext()->GSSetConstantBuffers(mObj->mCBuffersGeometry[i]->mSlot, 1, &mObj->mCBuffersGeometry[i]->mCBuffer);
 
 	
 	dx->setRenderFlag(app::AppImplMswRendererDx::CUSTOM_SHADER_ACTIVE);
@@ -192,9 +192,9 @@ void HlslProg::bind() const
 void HlslProg::unbind()
 {
 	auto dx = getDxRenderer();
-	dx->mDeviceContext->VSSetShader(NULL, NULL, 0);
-	dx->mDeviceContext->PSSetShader(NULL, NULL, 0);
-	dx->mDeviceContext->GSSetShader(NULL, NULL, 0);
+	dx->GetContext()->VSSetShader(NULL, NULL, 0);
+	dx->GetContext()->PSSetShader(NULL, NULL, 0);
+	dx->GetContext()->GSSetShader(NULL, NULL, 0);
 	dx->clearRenderFlag(app::AppImplMswRendererDx::CUSTOM_SHADER_ACTIVE);
 }
 
@@ -212,7 +212,7 @@ void *HlslProg::MapCBufferVertex(UINT slot)
 		if(mObj->mCBuffersVertex[i]->mSlot == slot)
 		{
 			D3D11_MAPPED_SUBRESOURCE resource;
-			getDxRenderer()->mDeviceContext->Map(mObj->mCBuffersVertex[i]->mCBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+			getDxRenderer()->GetContext()->Map(mObj->mCBuffersVertex[i]->mCBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
 			return resource.pData;
 			break;
 		}
@@ -224,7 +224,7 @@ void HlslProg::UnmapCBufferVertex(UINT slot)
 	for(unsigned i = 0; i < mObj->mCBuffersVertex.size(); ++i)
 		if(mObj->mCBuffersVertex[i]->mSlot == slot)
 		{
-			getDxRenderer()->mDeviceContext->Unmap(mObj->mCBuffersVertex[i]->mCBuffer, 0);
+			getDxRenderer()->GetContext()->Unmap(mObj->mCBuffersVertex[i]->mCBuffer, 0);
 			break;
 		}
 }
@@ -243,7 +243,7 @@ void *HlslProg::MapCBufferFragment(UINT slot)
 		if(mObj->mCBuffersFragment[i]->mSlot == slot)
 		{
 			D3D11_MAPPED_SUBRESOURCE resource;
-			getDxRenderer()->mDeviceContext->Map(mObj->mCBuffersFragment[i]->mCBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+			getDxRenderer()->GetContext()->Map(mObj->mCBuffersFragment[i]->mCBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
 			return resource.pData;
 			break;
 		}
@@ -255,7 +255,7 @@ void HlslProg::UnmapCBufferFragment(UINT slot)
 	for(unsigned i = 0; i < mObj->mCBuffersFragment.size(); ++i)
 		if(mObj->mCBuffersFragment[i]->mSlot == slot)
 		{
-			getDxRenderer()->mDeviceContext->Unmap(mObj->mCBuffersFragment[i]->mCBuffer, 0);
+			getDxRenderer()->GetContext()->Unmap(mObj->mCBuffersFragment[i]->mCBuffer, 0);
 			break;
 		}
 }
@@ -274,7 +274,7 @@ void *HlslProg::MapCBufferGeometry(UINT slot)
 		if(mObj->mCBuffersGeometry[i]->mSlot == slot)
 		{
 			D3D11_MAPPED_SUBRESOURCE resource;
-			getDxRenderer()->mDeviceContext->Map(mObj->mCBuffersGeometry[i]->mCBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+			getDxRenderer()->GetContext()->Map(mObj->mCBuffersGeometry[i]->mCBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
 			return resource.pData;
 			break;
 		}
@@ -286,7 +286,7 @@ void HlslProg::UnmapCBufferGeometry(UINT slot)
 	for(unsigned i = 0; i < mObj->mCBuffersGeometry.size(); ++i)
 		if(mObj->mCBuffersGeometry[i]->mSlot == slot)
 		{
-			getDxRenderer()->mDeviceContext->Unmap(mObj->mCBuffersGeometry[i]->mCBuffer, 0);
+			getDxRenderer()->GetContext()->Unmap(mObj->mCBuffersGeometry[i]->mCBuffer, 0);
 			break;
 		}
 }

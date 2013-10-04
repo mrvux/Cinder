@@ -105,7 +105,7 @@ Surface	RendererDx::copyWindowSurface( const Area &area )
 {
 	Surface s( area.getWidth(), area.getHeight(), true );
 	//glFlush(); // there is some disagreement about whether this is necessary, but ideally performance-conscious users will use FBOs anyway
-	mImpl->mDeviceContext->Flush();
+	mImpl->FlushContext();
 	//GLint oldPackAlignment;
 	//glGetIntegerv( GL_PACK_ALIGNMENT, &oldPackAlignment ); 
 	//glPixelStorei( GL_PACK_ALIGNMENT, 1 );
@@ -125,7 +125,7 @@ Surface	RendererDx::copyWindowSurface( const Area &area )
 	desc.MiscFlags = 0;
 
 	ID3D11Texture2D *texture;
-	mImpl->md3dDevice->CreateTexture2D(&desc, NULL, &texture);
+	mImpl->GetDevice()->CreateTexture2D(&desc, NULL, &texture);
 
 	D3D11_BOX box;
 	box.front = 0;
@@ -138,12 +138,12 @@ Surface	RendererDx::copyWindowSurface( const Area &area )
 	ID3D11Texture2D *framebuffer;
 	mImpl->mSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&framebuffer);
 
-	mImpl->mDeviceContext->CopySubresourceRegion(texture, 0, 0, 0, 0, framebuffer, 0, &box);
+	mImpl->GetContext()->CopySubresourceRegion(texture, 0, 0, 0, 0, framebuffer, 0, &box);
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	mImpl->mDeviceContext->Map(texture, 0, D3D11_MAP_READ, 0, &mappedResource);
+	mImpl->GetContext()->Map(texture, 0, D3D11_MAP_READ, 0, &mappedResource);
 	memcpy(s.getData(), mappedResource.pData, area.calcArea() * 4);
-	mImpl->mDeviceContext->Unmap(texture, 0);
+	mImpl->GetContext()->Unmap(texture, 0);
 
 	texture->Release();
 	framebuffer->Release();

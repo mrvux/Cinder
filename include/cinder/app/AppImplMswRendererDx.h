@@ -32,6 +32,7 @@
 #include "cinder/app/App.h"
 #include "cinder/app/AppImplMswRenderer.h"
 #include "cinder/app/RendererDx.h"
+#include "cinder/dx/DxDevice.h"
 #include "cinder/dx/dx.h"
 #include <d3dcompiler.h>
 #include <d3d11.h>
@@ -126,16 +127,14 @@ class AppImplMswRendererDx : public AppImplMswRenderer {
 	LightData mLights[8];
 
 	RendererDx	*mRenderer;
-	D3D_FEATURE_LEVEL mFeatureLevel;
+
+	
   #if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
-	ID3D11DeviceContext1 *mDeviceContext;
 	IDXGISwapChain1 *mSwapChain;
-	ID3D11Device1 *md3dDevice;
   #else
-  	ID3D11DeviceContext *mDeviceContext;
 	IDXGISwapChain *mSwapChain;
-	ID3D11Device *md3dDevice;
   #endif
+
 	ID3D11RenderTargetView *mMainFramebuffer;
 	ID3D11Texture2D *mDepthStencilTexture;
 	ID3D11DepthStencilView *mDepthStencilView;
@@ -183,6 +182,14 @@ class AppImplMswRendererDx : public AppImplMswRenderer {
 	ID3D11DepthStencilState *mDepthStencilState;
 	D3D11_DEPTH_STENCIL_DESC mDepthStencilDesc;
 
+	/*inline ci::dx::DxDevice* GetDxDevice() { return mDevice; }*/
+
+	inline ci::dx::IDXContext* GetContext() { return mDevice->GetContext(); }
+	inline ci::dx::IDXDevice* GetDevice() { return mDevice->GetDevice(); }
+	inline D3D_FEATURE_LEVEL GetFeatureLevel() { return mDevice->GetFeatureLevel(); }
+
+	void FlushContext();
+
  protected:
 	bool	initializeInternal( DX_WINDOW_TYPE wnd );
 	int		initMultisample( int requestedLevelIdx );
@@ -202,6 +209,8 @@ class AppImplMswRendererDx : public AppImplMswRenderer {
 	int mStateFlags;
 	bool mFullScreen;
 	bool mVsyncEnable;
+
+	ci::dx::DxDevice* mDevice;
 };
 
 } } // namespace cinder::app

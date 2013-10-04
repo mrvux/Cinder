@@ -181,8 +181,7 @@ AppImplMswRendererDx::AppImplMswRendererDx( App *aApp, RendererDx *aRenderer )
   mCurrentUV(0, 0),
   mLightingEnabled(false),
   mRenderer( aRenderer ),
-  md3dDevice( NULL ),
-  mDeviceContext( NULL ),
+  mDevice( NULL ),
   mSwapChain( NULL ),
   mMainFramebuffer( NULL ),
   mDepthStencilTexture( NULL ),
@@ -305,10 +304,10 @@ void AppImplMswRendererDx::defaultResize() const
 	getPlatformWindowDimensions(mWnd, &width, &height);
 
 	ID3D11RenderTargetView *view = NULL;
-	mDeviceContext->OMSetRenderTargets(1, &view, NULL);
+	mDevice->GetContext()->OMSetRenderTargets(1, &view, NULL);
 	mMainFramebuffer->Release();
 	mDepthStencilView->Release();
-	mDeviceContext->Flush();
+	mDevice->GetContext()->Flush();
 	const_cast<AppImplMswRendererDx*>(this)->createFramebufferResources();
 
 	cinder::CameraPersp cam( static_cast<int>(width), static_cast<int>(height), 60.0f );
@@ -345,14 +344,14 @@ void AppImplMswRendererDx::swapBuffers() const
 	if(hr == DXGI_ERROR_DEVICE_REMOVED)
 		const_cast<AppImplMswRendererDx*>(this)->handleLostDevice();
 #if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
-	mDeviceContext->DiscardView( mMainFramebuffer );
-	mDeviceContext->DiscardView( mDepthStencilView );
+	mDevice->GetContext()->DiscardView( mMainFramebuffer );
+	mDevice->GetContext()->DiscardView( mDepthStencilView );
 #endif
 }
 
 void AppImplMswRendererDx::makeCurrentContext()
 {
-	mDeviceContext->OMSetRenderTargets(1, &mMainFramebuffer, mDepthStencilView);
+	mDevice->GetContext()->OMSetRenderTargets(1, &mMainFramebuffer, mDepthStencilView);
 }
 
 void AppImplMswRendererDx::setViewport(int x, int y, int width, int height) const
@@ -364,15 +363,15 @@ void AppImplMswRendererDx::setViewport(int x, int y, int width, int height) cons
     vp.MaxDepth = 1.0f;
     vp.TopLeftX = (FLOAT)x;
     vp.TopLeftY = (FLOAT)y;
-	mDeviceContext->RSSetViewports( 1, &vp );
+	mDevice->GetContext()->RSSetViewports( 1, &vp );
 }
 
 void AppImplMswRendererDx::enableDepthTesting(bool enable)
 {
 	mDepthStencilDesc.DepthEnable = enable == true;
 	if(mDepthStencilState) mDepthStencilState->Release();
-	md3dDevice->CreateDepthStencilState(&mDepthStencilDesc, &mDepthStencilState);
-	mDeviceContext->OMSetDepthStencilState(mDepthStencilState, 0xff);
+	mDevice->GetDevice()->CreateDepthStencilState(&mDepthStencilDesc, &mDepthStencilState);
+	mDevice->GetContext()->OMSetDepthStencilState(mDepthStencilState, 0xff);
 }
 
 void AppImplMswRendererDx::enableAlphaBlending(bool premultiplied)
@@ -392,16 +391,16 @@ void AppImplMswRendererDx::enableAlphaBlending(bool premultiplied)
 		mBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
 		mBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 	}
-	md3dDevice->CreateBlendState(&mBlendDesc, &mBlendState);
-	mDeviceContext->OMSetBlendState(mBlendState, 0, 0xffffffff);
+	mDevice->GetDevice()->CreateBlendState(&mBlendDesc, &mBlendState);
+	mDevice->GetContext()->OMSetBlendState(mBlendState, 0, 0xffffffff);
 }
 
 void AppImplMswRendererDx::disableAlphaBlending()
 {
 	if(mBlendState) mBlendState->Release();
 	mBlendDesc.RenderTarget[0].BlendEnable = FALSE;
-	md3dDevice->CreateBlendState(&mBlendDesc, &mBlendState);
-	mDeviceContext->OMSetBlendState(mBlendState, 0, 0xffffffff);
+	mDevice->GetDevice()->CreateBlendState(&mBlendDesc, &mBlendState);
+	mDevice->GetContext()->OMSetBlendState(mBlendState, 0, 0xffffffff);
 }
 
 void AppImplMswRendererDx::enableAdditiveBlending()
@@ -413,15 +412,20 @@ void AppImplMswRendererDx::enableAdditiveBlending()
 	mBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	mBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
 	mBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-	md3dDevice->CreateBlendState(&mBlendDesc, &mBlendState);
-	mDeviceContext->OMSetBlendState(mBlendState, 0, 0xffffffff);
+	mDevice->GetDevice()->CreateBlendState(&mBlendDesc, &mBlendState);
+	mDevice->GetContext()->OMSetBlendState(mBlendState, 0, 0xffffffff);
 }
 
 void AppImplMswRendererDx::enableDepthWriting(bool enable)
 {
 	mDepthStencilDesc.DepthWriteMask = (enable) ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
 	if(mDepthStencilState) mDepthStencilState->Release();
-	md3dDevice->CreateDepthStencilState(&mDepthStencilDesc, &mDepthStencilState);
+	mDevice->GetDevice()->CreateDepthStencilState(&mDepthStencilDesc, &mDepthStencilState);
+}
+
+void AppImplMswRendererDx::FlushContext()
+{
+	mDevice->GetContext()->Flush();
 }
 
 #if defined( CINDER_MSW )
@@ -462,18 +466,18 @@ bool AppImplMswRendererDx::initializeInternal( DX_WINDOW_TYPE wnd )
 
 	// create fixed function vertex shader
 	HRESULT hr = E_FAIL;
-	// hr = md3dDevice->CreateVertexShader(Shaders::FixedFunctionVS, sizeof(Shaders::FixedFunctionVS), NULL, &mFixedColorVertexShader);
-	if( D3D_FEATURE_LEVEL_9_1 == mFeatureLevel ) {
-		hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::FixedFunctionVS, sizeof(Shaders::Dx9_1::FixedFunctionVS), NULL, &mFixedColorVertexShader);
+	// hr = mDevice->GetDevice()->CreateVertexShader(Shaders::FixedFunctionVS, sizeof(Shaders::FixedFunctionVS), NULL, &mFixedColorVertexShader);
+	if( D3D_FEATURE_LEVEL_9_1 == mDevice->GetFeatureLevel() ) {
+		hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::FixedFunctionVS, sizeof(Shaders::Dx9_1::FixedFunctionVS), NULL, &mFixedColorVertexShader);
 	}
-	else if( D3D_FEATURE_LEVEL_9_3 == mFeatureLevel ) {
-		hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::FixedFunctionVS, sizeof(Shaders::Dx9_3::FixedFunctionVS), NULL, &mFixedColorVertexShader);
+	else if( D3D_FEATURE_LEVEL_9_3 == mDevice->GetFeatureLevel() ) {
+		hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::FixedFunctionVS, sizeof(Shaders::Dx9_3::FixedFunctionVS), NULL, &mFixedColorVertexShader);
 	}
-	else if( D3D_FEATURE_LEVEL_10_1 == mFeatureLevel ) {
-		hr = md3dDevice->CreateVertexShader(Shaders::Dx10::FixedFunctionVS, sizeof(Shaders::Dx10::FixedFunctionVS), NULL, &mFixedColorVertexShader);
+	else if( D3D_FEATURE_LEVEL_10_1 == mDevice->GetFeatureLevel() ) {
+		hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::FixedFunctionVS, sizeof(Shaders::Dx10::FixedFunctionVS), NULL, &mFixedColorVertexShader);
 	}
-	else if( D3D_FEATURE_LEVEL_11_0 == mFeatureLevel || D3D_FEATURE_LEVEL_11_1 == mFeatureLevel ) {
-		hr = md3dDevice->CreateVertexShader(Shaders::Dx11::FixedFunctionVS, sizeof(Shaders::Dx11::FixedFunctionVS), NULL, &mFixedColorVertexShader);
+	else if( D3D_FEATURE_LEVEL_11_0 == mDevice->GetFeatureLevel() || D3D_FEATURE_LEVEL_11_1 == mDevice->GetFeatureLevel() ) {
+		hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::FixedFunctionVS, sizeof(Shaders::Dx11::FixedFunctionVS), NULL, &mFixedColorVertexShader);
 	}				
 	if(hr != S_OK)
 		return false;
@@ -485,38 +489,38 @@ bool AppImplMswRendererDx::initializeInternal( DX_WINDOW_TYPE wnd )
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
-	//hr = md3dDevice->CreateInputLayout(layout, sizeof(layout) / sizeof(layout[0]), Shaders::FixedFunctionVS, sizeof(Shaders::FixedFunctionVS), &mFixedLayout);
-	if( D3D_FEATURE_LEVEL_9_1 == mFeatureLevel ) {
-		hr = md3dDevice->CreateInputLayout(layout, sizeof(layout) / sizeof(layout[0]), Shaders::Dx9_1::FixedFunctionVS, sizeof(Shaders::Dx9_1::FixedFunctionVS), &mFixedLayout);
+	//hr = mDevice->GetDevice()->CreateInputLayout(layout, sizeof(layout) / sizeof(layout[0]), Shaders::FixedFunctionVS, sizeof(Shaders::FixedFunctionVS), &mFixedLayout);
+	if( D3D_FEATURE_LEVEL_9_1 == mDevice->GetFeatureLevel() ) {
+		hr = mDevice->GetDevice()->CreateInputLayout(layout, sizeof(layout) / sizeof(layout[0]), Shaders::Dx9_1::FixedFunctionVS, sizeof(Shaders::Dx9_1::FixedFunctionVS), &mFixedLayout);
 	}
-	else if( D3D_FEATURE_LEVEL_9_3 == mFeatureLevel ) {
-		hr = md3dDevice->CreateInputLayout(layout, sizeof(layout) / sizeof(layout[0]), Shaders::Dx9_3::FixedFunctionVS, sizeof(Shaders::Dx9_3::FixedFunctionVS), &mFixedLayout);
+	else if( D3D_FEATURE_LEVEL_9_3 == mDevice->GetFeatureLevel() ) {
+		hr = mDevice->GetDevice()->CreateInputLayout(layout, sizeof(layout) / sizeof(layout[0]), Shaders::Dx9_3::FixedFunctionVS, sizeof(Shaders::Dx9_3::FixedFunctionVS), &mFixedLayout);
 	}
-	else if( D3D_FEATURE_LEVEL_10_1 == mFeatureLevel ) {
-		hr = md3dDevice->CreateInputLayout(layout, sizeof(layout) / sizeof(layout[0]), Shaders::Dx10::FixedFunctionVS, sizeof(Shaders::Dx10::FixedFunctionVS), &mFixedLayout);
+	else if( D3D_FEATURE_LEVEL_10_1 == mDevice->GetFeatureLevel() ) {
+		hr = mDevice->GetDevice()->CreateInputLayout(layout, sizeof(layout) / sizeof(layout[0]), Shaders::Dx10::FixedFunctionVS, sizeof(Shaders::Dx10::FixedFunctionVS), &mFixedLayout);
 	}
-	else if( D3D_FEATURE_LEVEL_11_0 == mFeatureLevel || D3D_FEATURE_LEVEL_11_1 == mFeatureLevel ) {
-		hr = md3dDevice->CreateInputLayout(layout, sizeof(layout) / sizeof(layout[0]), Shaders::Dx11::FixedFunctionVS, sizeof(Shaders::Dx11::FixedFunctionVS), &mFixedLayout);
+	else if( D3D_FEATURE_LEVEL_11_0 == mDevice->GetFeatureLevel() || D3D_FEATURE_LEVEL_11_1 == mDevice->GetFeatureLevel() ) {
+		hr = mDevice->GetDevice()->CreateInputLayout(layout, sizeof(layout) / sizeof(layout[0]), Shaders::Dx11::FixedFunctionVS, sizeof(Shaders::Dx11::FixedFunctionVS), &mFixedLayout);
 	}		
 	if(hr != S_OK)
 		return false;
-	mDeviceContext->IASetInputLayout(mFixedLayout);
+	mDevice->GetContext()->IASetInputLayout(mFixedLayout);
 
 	// create shaders
 	bool bShadersSucceeded = false;
-	if( D3D_FEATURE_LEVEL_9_1 == mFeatureLevel ) {
+	if( D3D_FEATURE_LEVEL_9_1 == mDevice->GetFeatureLevel() ) {
 		bShadersSucceeded = createShadersFeatureLevel_9_1();	
 	}
-	else if( D3D_FEATURE_LEVEL_9_3 == mFeatureLevel ) {
+	else if( D3D_FEATURE_LEVEL_9_3 == mDevice->GetFeatureLevel() ) {
 		bShadersSucceeded = createShadersFeatureLevel_9_3();	
 	}
-	else if( D3D_FEATURE_LEVEL_10_1 == mFeatureLevel ) {
+	else if( D3D_FEATURE_LEVEL_10_1 == mDevice->GetFeatureLevel() ) {
 		bShadersSucceeded = createShadersFeatureLevel_10_1();
 	}
-	else if( D3D_FEATURE_LEVEL_11_0 == mFeatureLevel ) {
+	else if( D3D_FEATURE_LEVEL_11_0 == mDevice->GetFeatureLevel() ) {
 		bShadersSucceeded = createShadersFeatureLevel_11_0();
 	}
-	else if( D3D_FEATURE_LEVEL_11_0 == mFeatureLevel ) {
+	else if( D3D_FEATURE_LEVEL_11_0 == mDevice->GetFeatureLevel() ) {
 		bShadersSucceeded = createShadersFeatureLevel_11_1();
 	}
 
@@ -531,14 +535,14 @@ bool AppImplMswRendererDx::initializeInternal( DX_WINDOW_TYPE wnd )
 	bd.ByteWidth = D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT * sizeof(FixedVertex) * 3;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	hr = md3dDevice->CreateBuffer( &bd, NULL, &mVertexBuffer );
+	hr = mDevice->GetDevice()->CreateBuffer( &bd, NULL, &mVertexBuffer );
 	if(hr != S_OK)
 		return false;
 
 	// create index buffer
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd.ByteWidth = D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT * sizeof(int);
-	hr = md3dDevice->CreateBuffer( &bd, NULL, &mIndexBuffer );
+	hr = mDevice->GetDevice()->CreateBuffer( &bd, NULL, &mIndexBuffer );
 	if(hr != S_OK)
 		return false;
 
@@ -546,19 +550,19 @@ bool AppImplMswRendererDx::initializeInternal( DX_WINDOW_TYPE wnd )
 	bd.Usage = D3D11_USAGE_DYNAMIC;
 	bd.ByteWidth = sizeof(Matrix44f) * 2;
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	hr = md3dDevice->CreateBuffer( &bd, NULL, &mCBMatrices );
+	hr = mDevice->GetDevice()->CreateBuffer( &bd, NULL, &mCBMatrices );
 	if(hr != S_OK)
 		return false;
 
 	// create fixed lighting buffer
 	bd.ByteWidth = sizeof(LightData) * 8;
-	hr = md3dDevice->CreateBuffer( &bd, NULL, &mCBLights );
+	hr = mDevice->GetDevice()->CreateBuffer( &bd, NULL, &mCBLights );
 	if(hr != S_OK)
 		return false;
 
 	// create fixed function parameters
 	bd.ByteWidth = sizeof(Vec4f) * 3;
-	hr = md3dDevice->CreateBuffer( &bd, NULL, &mCBFixedParameters );
+	hr = mDevice->GetDevice()->CreateBuffer( &bd, NULL, &mCBFixedParameters );
 	if(hr != S_OK)
 		return false;
 
@@ -575,10 +579,10 @@ bool AppImplMswRendererDx::initializeInternal( DX_WINDOW_TYPE wnd )
 	rd.ScissorEnable = FALSE;
 	rd.MultisampleEnable = FALSE;
 	rd.AntialiasedLineEnable = FALSE;
-	hr = md3dDevice->CreateRasterizerState( &rd, &mDefaultRenderState );
+	hr = mDevice->GetDevice()->CreateRasterizerState( &rd, &mDefaultRenderState );
 	if(hr != S_OK)
 		__debugbreak();
-	mDeviceContext->RSSetState( mDefaultRenderState );
+	mDevice->GetContext()->RSSetState( mDefaultRenderState );
 
 	//copying the default OpenGL depth behavior
 	mDepthStencilDesc.DepthEnable = FALSE;
@@ -592,10 +596,10 @@ bool AppImplMswRendererDx::initializeInternal( DX_WINDOW_TYPE wnd )
 	mDepthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 	mDepthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 	mDepthStencilDesc.BackFace = mDepthStencilDesc.FrontFace;
-	hr = md3dDevice->CreateDepthStencilState( &mDepthStencilDesc, &mDepthStencilState );
+	hr = mDevice->GetDevice()->CreateDepthStencilState( &mDepthStencilDesc, &mDepthStencilState );
 	if(hr != S_OK)
 		__debugbreak();
-	mDeviceContext->OMSetDepthStencilState( mDepthStencilState, 0 );
+	mDevice->GetContext()->OMSetDepthStencilState( mDepthStencilState, 0 );
 
 	mBlendDesc.AlphaToCoverageEnable = FALSE;
 	mBlendDesc.IndependentBlendEnable = FALSE;
@@ -607,10 +611,10 @@ bool AppImplMswRendererDx::initializeInternal( DX_WINDOW_TYPE wnd )
 	mBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	mBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	mBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	hr = md3dDevice->CreateBlendState(&mBlendDesc, &mBlendState);
+	hr = mDevice->GetDevice()->CreateBlendState(&mBlendDesc, &mBlendState);
 	if(hr != S_OK)
 		__debugbreak();
-	mDeviceContext->OMSetBlendState(mBlendState, 0, 0xffffffff);
+	mDevice->GetContext()->OMSetBlendState(mBlendState, 0, 0xffffffff);
 
 	return true;									// Success
 }
@@ -623,59 +627,15 @@ int AppImplMswRendererDx::initMultisample( int requestedLevelIdx )
 
 bool AppImplMswRendererDx::createDeviceResources()
 {
-	UINT createDeviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-#ifdef _DEBUG
-    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-	D3D_FEATURE_LEVEL featureLevels[] =
-    {
-#if (_WIN32_WINNT >= 0x0602 /*_WIN32_WINNT_WIN8*/)
-		// This requires Windows 8.
-		D3D_FEATURE_LEVEL_11_1,
-#endif
-        D3D_FEATURE_LEVEL_11_0,
-        D3D_FEATURE_LEVEL_10_1,
-        //D3D_FEATURE_LEVEL_10_0,
-		D3D_FEATURE_LEVEL_9_3,
-		//D3D_FEATURE_LEVEL_9_2,
-		D3D_FEATURE_LEVEL_9_1
-    };
-	mFeatureLevel = D3D_FEATURE_LEVEL_11_1;
-	ID3D11Device *device;
-	ID3D11DeviceContext *context;
-	HRESULT hr = D3D11CreateDevice(
-		NULL,
-		D3D_DRIVER_TYPE_HARDWARE,
-		NULL,
-		createDeviceFlags,
-		featureLevels,
-		sizeof(featureLevels) / sizeof(featureLevels[0]),
-		D3D11_SDK_VERSION,
-		&device,
-		&mFeatureLevel,
-		&context
-	);
-	if( hr != S_OK )
+	try
+	{
+		mDevice = new ci::dx::DxDevice();
+		return true;
+	}
+	catch (dx::DxException exc)
+	{
 		return false;
-
-  #if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
-	hr = device->QueryInterface(__uuidof(ID3D11Device1), (void**)&md3dDevice);
-  #else
-	hr = device->QueryInterface(__uuidof(ID3D11Device), (void**)&md3dDevice);
-  #endif
-	if( hr != S_OK )
-		return false;
-
-  #if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
-	hr = context->QueryInterface(__uuidof(ID3D11DeviceContext1), (void**)&mDeviceContext);
-  #else
-	hr = context->QueryInterface(__uuidof(ID3D11DeviceContext), (void**)&mDeviceContext);
-  #endif
-	if( hr != S_OK )
-		return false;
-	context->Release();
-	device->Release();
-	return true;
+	}
 }
 
 bool AppImplMswRendererDx::createFramebufferResources()
@@ -692,7 +652,7 @@ bool AppImplMswRendererDx::createFramebufferResources()
 	else
 	{
 		IDXGIDevice1 *dxgiDevice;
-		hr = md3dDevice->QueryInterface(__uuidof(IDXGIDevice1), (void**)&dxgiDevice);
+		hr = mDevice->GetDevice()->QueryInterface(__uuidof(IDXGIDevice1), (void**)&dxgiDevice);
 		if( hr != S_OK )
 			return false;
 		IDXGIAdapter *dxgiAdapter;
@@ -745,9 +705,9 @@ bool AppImplMswRendererDx::createFramebufferResources()
 		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
   #if defined( CINDER_WINRT )
-		hr = dxgiFactory->CreateSwapChainForCoreWindow( md3dDevice, reinterpret_cast<IUnknown*>(mWnd.Get()), &swapChainDesc, nullptr, &mSwapChain );
+		hr = dxgiFactory->CreateSwapChainForCoreWindow( mDevice->GetDevice(), reinterpret_cast<IUnknown*>(mWnd.Get()), &swapChainDesc, nullptr, &mSwapChain );
   #else 
-		hr = dxgiFactory->CreateSwapChainForHwnd( md3dDevice, mWnd, &swapChainDesc, NULL, NULL, &mSwapChain );
+		hr = dxgiFactory->CreateSwapChainForHwnd( mDevice->GetDevice(), mWnd, &swapChainDesc, NULL, NULL, &mSwapChain );
   #endif
 #else
 		IDXGIFactory1 *dxgiFactory;
@@ -772,7 +732,7 @@ bool AppImplMswRendererDx::createFramebufferResources()
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 		swapChainDesc.Flags = 0;
 		
-		hr = dxgiFactory->CreateSwapChain( md3dDevice, &swapChainDesc, &mSwapChain );
+		hr = dxgiFactory->CreateSwapChain( mDevice->GetDevice(), &swapChainDesc, &mSwapChain );
 #endif
 		if( hr != S_OK )
 			return false;
@@ -791,7 +751,7 @@ bool AppImplMswRendererDx::createFramebufferResources()
 	if(hr != S_OK)
 		return false;
 
-	hr = md3dDevice->CreateRenderTargetView( framebuffer, NULL, &mMainFramebuffer );
+	hr = mDevice->GetDevice()->CreateRenderTargetView( framebuffer, NULL, &mMainFramebuffer );
 	framebuffer->Release();
 	if( hr != S_OK )
 		return false;
@@ -810,7 +770,7 @@ bool AppImplMswRendererDx::createFramebufferResources()
     descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
     descDepth.CPUAccessFlags = 0;
     descDepth.MiscFlags = 0;
-	hr = md3dDevice->CreateTexture2D( &descDepth, NULL, &mDepthStencilTexture );
+	hr = mDevice->GetDevice()->CreateTexture2D( &descDepth, NULL, &mDepthStencilTexture );
 	if( hr != S_OK )
 		return false;
 
@@ -819,11 +779,11 @@ bool AppImplMswRendererDx::createFramebufferResources()
     descDSV.Format = descDepth.Format;
     descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     descDSV.Texture2D.MipSlice = 0;
-	hr = md3dDevice->CreateDepthStencilView( mDepthStencilTexture, &descDSV, &mDepthStencilView );
+	hr = mDevice->GetDevice()->CreateDepthStencilView( mDepthStencilTexture, &descDSV, &mDepthStencilView );
 	if( hr != S_OK )
 		return false;
 
-	mDeviceContext->OMSetRenderTargets( 1, &mMainFramebuffer, mDepthStencilView );
+	mDevice->GetContext()->OMSetRenderTargets( 1, &mMainFramebuffer, mDepthStencilView );
 
 	// setup the viewport
 	setViewport(0, 0, static_cast<UINT>(width), static_cast<UINT>(height));
@@ -836,78 +796,78 @@ bool AppImplMswRendererDx::createShadersFeatureLevel_9_1()
 	HRESULT hr;
 
 	// create fixed function fragment shader
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx9_1::FixedFunctionPS, sizeof(Shaders::Dx9_1::FixedFunctionPS), NULL, &mFixedColorPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx9_1::FixedFunctionPS, sizeof(Shaders::Dx9_1::FixedFunctionPS), NULL, &mFixedColorPixelShader);
 	if(hr != S_OK)
 		return false;
 
 	// create the other fixed function shaders
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::FixedFunctionLightingVS, sizeof(Shaders::Dx9_1::FixedFunctionLightingVS), NULL, &mFixedColorLightVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::FixedFunctionLightingVS, sizeof(Shaders::Dx9_1::FixedFunctionLightingVS), NULL, &mFixedColorLightVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx9_1::FixedFunctionLightingPS, sizeof(Shaders::Dx9_1::FixedFunctionLightingPS), NULL, &mFixedColorLightPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx9_1::FixedFunctionLightingPS, sizeof(Shaders::Dx9_1::FixedFunctionLightingPS), NULL, &mFixedColorLightPixelShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::FixedFunctionTextureVS, sizeof(Shaders::Dx9_1::FixedFunctionTextureVS), NULL, &mFixedTextureVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::FixedFunctionTextureVS, sizeof(Shaders::Dx9_1::FixedFunctionTextureVS), NULL, &mFixedTextureVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx9_1::FixedFunctionTexturePS, sizeof(Shaders::Dx9_1::FixedFunctionTexturePS), NULL, &mFixedTexturePixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx9_1::FixedFunctionTexturePS, sizeof(Shaders::Dx9_1::FixedFunctionTexturePS), NULL, &mFixedTexturePixelShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::FixedFunctionTextureLightingVS, sizeof(Shaders::Dx9_1::FixedFunctionTextureLightingVS), NULL, &mFixedTextureLightVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::FixedFunctionTextureLightingVS, sizeof(Shaders::Dx9_1::FixedFunctionTextureLightingVS), NULL, &mFixedTextureLightVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx9_1::FixedFunctionTextureLightingPS, sizeof(Shaders::Dx9_1::FixedFunctionTextureLightingPS), NULL, &mFixedTextureLightPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx9_1::FixedFunctionTextureLightingPS, sizeof(Shaders::Dx9_1::FixedFunctionTextureLightingPS), NULL, &mFixedTextureLightPixelShader);
 	if(hr != S_OK)
 		return false;
 
 	// create the vbo shaders
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionVS), NULL, &mVboPositionVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionVS), NULL, &mVboPositionVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalVS), NULL, &mVboPositionNormalVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalVS), NULL, &mVboPositionNormalVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionColorVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionColorVS), NULL, &mVboPositionColorVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionColorVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionColorVS), NULL, &mVboPositionColorVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionTextureVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionTextureVS), NULL, &mVboPositionTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionTextureVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionTextureVS), NULL, &mVboPositionTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorVS), NULL, &mVboPositionNormalColorVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorVS), NULL, &mVboPositionNormalColorVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalTextureVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalTextureVS), NULL, &mVboPositionNormalTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalTextureVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalTextureVS), NULL, &mVboPositionNormalTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionColorTextureVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionColorTextureVS), NULL, &mVboPositionColorTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionColorTextureVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionColorTextureVS), NULL, &mVboPositionColorTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorTextureVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorTextureVS), NULL, &mVboPositionNormalColorTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorTextureVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorTextureVS), NULL, &mVboPositionNormalColorTextureVS);
 	if(hr != S_OK)
 		return false;
 
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionLightVS), NULL, &mVboPositionLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionLightVS), NULL, &mVboPositionLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalLightVS), NULL, &mVboPositionNormalLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalLightVS), NULL, &mVboPositionNormalLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionColorLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionColorLightVS), NULL, &mVboPositionColorLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionColorLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionColorLightVS), NULL, &mVboPositionColorLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionTextureLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionTextureLightVS), NULL, &mVboPositionTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionTextureLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionTextureLightVS), NULL, &mVboPositionTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorLightVS), NULL, &mVboPositionNormalColorLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorLightVS), NULL, &mVboPositionNormalColorLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalTextureLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalTextureLightVS), NULL, &mVboPositionNormalTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalTextureLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalTextureLightVS), NULL, &mVboPositionNormalTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionColorTextureLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionColorTextureLightVS), NULL, &mVboPositionColorTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionColorTextureLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionColorTextureLightVS), NULL, &mVboPositionColorTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorTextureLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorTextureLightVS), NULL, &mVboPositionNormalColorTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorTextureLightVS, sizeof(Shaders::Dx9_1::StandardVboLayoutPositionNormalColorTextureLightVS), NULL, &mVboPositionNormalColorTextureLightVS);
 	if(hr != S_OK)
 		return false;
 
@@ -919,78 +879,78 @@ bool AppImplMswRendererDx::createShadersFeatureLevel_9_3()
 	HRESULT hr;
 
 	// create fixed function fragment shader
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx9_3::FixedFunctionPS, sizeof(Shaders::Dx9_3::FixedFunctionPS), NULL, &mFixedColorPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx9_3::FixedFunctionPS, sizeof(Shaders::Dx9_3::FixedFunctionPS), NULL, &mFixedColorPixelShader);
 	if(hr != S_OK)
 		return false;
 
 	// create the other fixed function shaders
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::FixedFunctionLightingVS, sizeof(Shaders::Dx9_3::FixedFunctionLightingVS), NULL, &mFixedColorLightVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::FixedFunctionLightingVS, sizeof(Shaders::Dx9_3::FixedFunctionLightingVS), NULL, &mFixedColorLightVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx9_3::FixedFunctionLightingPS, sizeof(Shaders::Dx9_3::FixedFunctionLightingPS), NULL, &mFixedColorLightPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx9_3::FixedFunctionLightingPS, sizeof(Shaders::Dx9_3::FixedFunctionLightingPS), NULL, &mFixedColorLightPixelShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::FixedFunctionTextureVS, sizeof(Shaders::Dx9_3::FixedFunctionTextureVS), NULL, &mFixedTextureVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::FixedFunctionTextureVS, sizeof(Shaders::Dx9_3::FixedFunctionTextureVS), NULL, &mFixedTextureVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx9_3::FixedFunctionTexturePS, sizeof(Shaders::Dx9_3::FixedFunctionTexturePS), NULL, &mFixedTexturePixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx9_3::FixedFunctionTexturePS, sizeof(Shaders::Dx9_3::FixedFunctionTexturePS), NULL, &mFixedTexturePixelShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::FixedFunctionTextureLightingVS, sizeof(Shaders::Dx9_3::FixedFunctionTextureLightingVS), NULL, &mFixedTextureLightVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::FixedFunctionTextureLightingVS, sizeof(Shaders::Dx9_3::FixedFunctionTextureLightingVS), NULL, &mFixedTextureLightVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx9_3::FixedFunctionTextureLightingPS, sizeof(Shaders::Dx9_3::FixedFunctionTextureLightingPS), NULL, &mFixedTextureLightPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx9_3::FixedFunctionTextureLightingPS, sizeof(Shaders::Dx9_3::FixedFunctionTextureLightingPS), NULL, &mFixedTextureLightPixelShader);
 	if(hr != S_OK)
 		return false;
 
 	// create the vbo shaders
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionVS), NULL, &mVboPositionVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionVS), NULL, &mVboPositionVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalVS), NULL, &mVboPositionNormalVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalVS), NULL, &mVboPositionNormalVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionColorVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionColorVS), NULL, &mVboPositionColorVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionColorVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionColorVS), NULL, &mVboPositionColorVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionTextureVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionTextureVS), NULL, &mVboPositionTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionTextureVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionTextureVS), NULL, &mVboPositionTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorVS), NULL, &mVboPositionNormalColorVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorVS), NULL, &mVboPositionNormalColorVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalTextureVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalTextureVS), NULL, &mVboPositionNormalTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalTextureVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalTextureVS), NULL, &mVboPositionNormalTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionColorTextureVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionColorTextureVS), NULL, &mVboPositionColorTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionColorTextureVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionColorTextureVS), NULL, &mVboPositionColorTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorTextureVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorTextureVS), NULL, &mVboPositionNormalColorTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorTextureVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorTextureVS), NULL, &mVboPositionNormalColorTextureVS);
 	if(hr != S_OK)
 		return false;
 
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionLightVS), NULL, &mVboPositionLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionLightVS), NULL, &mVboPositionLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalLightVS), NULL, &mVboPositionNormalLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalLightVS), NULL, &mVboPositionNormalLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionColorLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionColorLightVS), NULL, &mVboPositionColorLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionColorLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionColorLightVS), NULL, &mVboPositionColorLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionTextureLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionTextureLightVS), NULL, &mVboPositionTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionTextureLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionTextureLightVS), NULL, &mVboPositionTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorLightVS), NULL, &mVboPositionNormalColorLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorLightVS), NULL, &mVboPositionNormalColorLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalTextureLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalTextureLightVS), NULL, &mVboPositionNormalTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalTextureLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalTextureLightVS), NULL, &mVboPositionNormalTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionColorTextureLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionColorTextureLightVS), NULL, &mVboPositionColorTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionColorTextureLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionColorTextureLightVS), NULL, &mVboPositionColorTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorTextureLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorTextureLightVS), NULL, &mVboPositionNormalColorTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorTextureLightVS, sizeof(Shaders::Dx9_3::StandardVboLayoutPositionNormalColorTextureLightVS), NULL, &mVboPositionNormalColorTextureLightVS);
 	if(hr != S_OK)
 		return false;
 
@@ -1002,78 +962,78 @@ bool AppImplMswRendererDx::createShadersFeatureLevel_10_1()
 	HRESULT hr;
 
 	// create fixed function fragment shader
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx10::FixedFunctionPS, sizeof(Shaders::Dx10::FixedFunctionPS), NULL, &mFixedColorPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx10::FixedFunctionPS, sizeof(Shaders::Dx10::FixedFunctionPS), NULL, &mFixedColorPixelShader);
 	if(hr != S_OK)
 		return false;
 
 	// create the other fixed function shaders
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::FixedFunctionLightingVS, sizeof(Shaders::Dx10::FixedFunctionLightingVS), NULL, &mFixedColorLightVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::FixedFunctionLightingVS, sizeof(Shaders::Dx10::FixedFunctionLightingVS), NULL, &mFixedColorLightVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx10::FixedFunctionLightingPS, sizeof(Shaders::Dx10::FixedFunctionLightingPS), NULL, &mFixedColorLightPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx10::FixedFunctionLightingPS, sizeof(Shaders::Dx10::FixedFunctionLightingPS), NULL, &mFixedColorLightPixelShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::FixedFunctionTextureVS, sizeof(Shaders::Dx10::FixedFunctionTextureVS), NULL, &mFixedTextureVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::FixedFunctionTextureVS, sizeof(Shaders::Dx10::FixedFunctionTextureVS), NULL, &mFixedTextureVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx10::FixedFunctionTexturePS, sizeof(Shaders::Dx10::FixedFunctionTexturePS), NULL, &mFixedTexturePixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx10::FixedFunctionTexturePS, sizeof(Shaders::Dx10::FixedFunctionTexturePS), NULL, &mFixedTexturePixelShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::FixedFunctionTextureLightingVS, sizeof(Shaders::Dx10::FixedFunctionTextureLightingVS), NULL, &mFixedTextureLightVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::FixedFunctionTextureLightingVS, sizeof(Shaders::Dx10::FixedFunctionTextureLightingVS), NULL, &mFixedTextureLightVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx10::FixedFunctionTextureLightingPS, sizeof(Shaders::Dx10::FixedFunctionTextureLightingPS), NULL, &mFixedTextureLightPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx10::FixedFunctionTextureLightingPS, sizeof(Shaders::Dx10::FixedFunctionTextureLightingPS), NULL, &mFixedTextureLightPixelShader);
 	if(hr != S_OK)
 		return false;
 
 	// create the vbo shaders
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionVS), NULL, &mVboPositionVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionVS), NULL, &mVboPositionVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalVS), NULL, &mVboPositionNormalVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalVS), NULL, &mVboPositionNormalVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionColorVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionColorVS), NULL, &mVboPositionColorVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionColorVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionColorVS), NULL, &mVboPositionColorVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionTextureVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionTextureVS), NULL, &mVboPositionTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionTextureVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionTextureVS), NULL, &mVboPositionTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalColorVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalColorVS), NULL, &mVboPositionNormalColorVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalColorVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalColorVS), NULL, &mVboPositionNormalColorVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalTextureVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalTextureVS), NULL, &mVboPositionNormalTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalTextureVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalTextureVS), NULL, &mVboPositionNormalTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionColorTextureVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionColorTextureVS), NULL, &mVboPositionColorTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionColorTextureVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionColorTextureVS), NULL, &mVboPositionColorTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalColorTextureVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalColorTextureVS), NULL, &mVboPositionNormalColorTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalColorTextureVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalColorTextureVS), NULL, &mVboPositionNormalColorTextureVS);
 	if(hr != S_OK)
 		return false;
 
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionLightVS), NULL, &mVboPositionLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionLightVS), NULL, &mVboPositionLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalLightVS), NULL, &mVboPositionNormalLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalLightVS), NULL, &mVboPositionNormalLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionColorLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionColorLightVS), NULL, &mVboPositionColorLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionColorLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionColorLightVS), NULL, &mVboPositionColorLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionTextureLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionTextureLightVS), NULL, &mVboPositionTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionTextureLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionTextureLightVS), NULL, &mVboPositionTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalColorLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalColorLightVS), NULL, &mVboPositionNormalColorLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalColorLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalColorLightVS), NULL, &mVboPositionNormalColorLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalTextureLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalTextureLightVS), NULL, &mVboPositionNormalTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalTextureLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalTextureLightVS), NULL, &mVboPositionNormalTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionColorTextureLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionColorTextureLightVS), NULL, &mVboPositionColorTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionColorTextureLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionColorTextureLightVS), NULL, &mVboPositionColorTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalColorTextureLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalColorTextureLightVS), NULL, &mVboPositionNormalColorTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx10::StandardVboLayoutPositionNormalColorTextureLightVS, sizeof(Shaders::Dx10::StandardVboLayoutPositionNormalColorTextureLightVS), NULL, &mVboPositionNormalColorTextureLightVS);
 	if(hr != S_OK)
 		return false;
 
@@ -1085,78 +1045,78 @@ bool AppImplMswRendererDx::createShadersFeatureLevel_11_0()
 	HRESULT hr;
 
 	// create fixed function fragment shader
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx11::FixedFunctionPS, sizeof(Shaders::Dx11::FixedFunctionPS), NULL, &mFixedColorPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx11::FixedFunctionPS, sizeof(Shaders::Dx11::FixedFunctionPS), NULL, &mFixedColorPixelShader);
 	if(hr != S_OK)
 		return false;
 
 	// create the other fixed function shaders
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::FixedFunctionLightingVS, sizeof(Shaders::Dx11::FixedFunctionLightingVS), NULL, &mFixedColorLightVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::FixedFunctionLightingVS, sizeof(Shaders::Dx11::FixedFunctionLightingVS), NULL, &mFixedColorLightVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx11::FixedFunctionLightingPS, sizeof(Shaders::Dx11::FixedFunctionLightingPS), NULL, &mFixedColorLightPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx11::FixedFunctionLightingPS, sizeof(Shaders::Dx11::FixedFunctionLightingPS), NULL, &mFixedColorLightPixelShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::FixedFunctionTextureVS, sizeof(Shaders::Dx11::FixedFunctionTextureVS), NULL, &mFixedTextureVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::FixedFunctionTextureVS, sizeof(Shaders::Dx11::FixedFunctionTextureVS), NULL, &mFixedTextureVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx11::FixedFunctionTexturePS, sizeof(Shaders::Dx11::FixedFunctionTexturePS), NULL, &mFixedTexturePixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx11::FixedFunctionTexturePS, sizeof(Shaders::Dx11::FixedFunctionTexturePS), NULL, &mFixedTexturePixelShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::FixedFunctionTextureLightingVS, sizeof(Shaders::Dx11::FixedFunctionTextureLightingVS), NULL, &mFixedTextureLightVertexShader);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::FixedFunctionTextureLightingVS, sizeof(Shaders::Dx11::FixedFunctionTextureLightingVS), NULL, &mFixedTextureLightVertexShader);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreatePixelShader(Shaders::Dx11::FixedFunctionTextureLightingPS, sizeof(Shaders::Dx11::FixedFunctionTextureLightingPS), NULL, &mFixedTextureLightPixelShader);
+	hr = mDevice->GetDevice()->CreatePixelShader(Shaders::Dx11::FixedFunctionTextureLightingPS, sizeof(Shaders::Dx11::FixedFunctionTextureLightingPS), NULL, &mFixedTextureLightPixelShader);
 	if(hr != S_OK)
 		return false;
 
 	// create the vbo shaders
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionVS), NULL, &mVboPositionVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionVS), NULL, &mVboPositionVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalVS), NULL, &mVboPositionNormalVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalVS), NULL, &mVboPositionNormalVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionColorVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionColorVS), NULL, &mVboPositionColorVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionColorVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionColorVS), NULL, &mVboPositionColorVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionTextureVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionTextureVS), NULL, &mVboPositionTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionTextureVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionTextureVS), NULL, &mVboPositionTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalColorVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalColorVS), NULL, &mVboPositionNormalColorVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalColorVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalColorVS), NULL, &mVboPositionNormalColorVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalTextureVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalTextureVS), NULL, &mVboPositionNormalTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalTextureVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalTextureVS), NULL, &mVboPositionNormalTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionColorTextureVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionColorTextureVS), NULL, &mVboPositionColorTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionColorTextureVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionColorTextureVS), NULL, &mVboPositionColorTextureVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalColorTextureVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalColorTextureVS), NULL, &mVboPositionNormalColorTextureVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalColorTextureVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalColorTextureVS), NULL, &mVboPositionNormalColorTextureVS);
 	if(hr != S_OK)
 		return false;
 
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionLightVS), NULL, &mVboPositionLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionLightVS), NULL, &mVboPositionLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalLightVS), NULL, &mVboPositionNormalLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalLightVS), NULL, &mVboPositionNormalLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionColorLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionColorLightVS), NULL, &mVboPositionColorLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionColorLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionColorLightVS), NULL, &mVboPositionColorLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionTextureLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionTextureLightVS), NULL, &mVboPositionTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionTextureLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionTextureLightVS), NULL, &mVboPositionTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalColorLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalColorLightVS), NULL, &mVboPositionNormalColorLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalColorLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalColorLightVS), NULL, &mVboPositionNormalColorLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalTextureLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalTextureLightVS), NULL, &mVboPositionNormalTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalTextureLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalTextureLightVS), NULL, &mVboPositionNormalTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionColorTextureLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionColorTextureLightVS), NULL, &mVboPositionColorTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionColorTextureLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionColorTextureLightVS), NULL, &mVboPositionColorTextureLightVS);
 	if(hr != S_OK)
 		return false;
-	hr = md3dDevice->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalColorTextureLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalColorTextureLightVS), NULL, &mVboPositionNormalColorTextureLightVS);
+	hr = mDevice->GetDevice()->CreateVertexShader(Shaders::Dx11::StandardVboLayoutPositionNormalColorTextureLightVS, sizeof(Shaders::Dx11::StandardVboLayoutPositionNormalColorTextureLightVS), NULL, &mVboPositionNormalColorTextureLightVS);
 	if(hr != S_OK)
 		return false;
 
@@ -1179,10 +1139,14 @@ void AppImplMswRendererDx::handleLostDevice()
 
 void AppImplMswRendererDx::kill()
 {
-	if(mDeviceContext) mDeviceContext->ClearState(); mDeviceContext = NULL;
+	if (mDevice) { mDevice->GetContext()->ClearState(); }
 	releaseNonDeviceResources();
-	if(mDeviceContext) mDeviceContext->Release(); mDeviceContext = NULL;
-	if(md3dDevice) md3dDevice->Release(); md3dDevice = NULL;
+
+	if (mDevice) 
+	{ 
+		delete mDevice;
+		mDevice = NULL;
+	}
 }
 
 

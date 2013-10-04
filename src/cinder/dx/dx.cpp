@@ -88,19 +88,19 @@ static bool anyShadersActive()
 	ID3D11VertexShader *vs;
 	ID3D11GeometryShader *gs;
 	ID3D11PixelShader *ps;
-	dx->mDeviceContext->VSGetShader(&vs, NULL, NULL);
+	dx->GetContext()->VSGetShader(&vs, NULL, NULL);
 	if(vs)
 	{
 		vs->Release();
 		return true;
 	}
-	dx->mDeviceContext->GSGetShader(&gs, NULL, NULL);
+	dx->GetContext()->GSGetShader(&gs, NULL, NULL);
 	if(gs)
 	{
 		gs->Release();
 		return true;
 	}
-	dx->mDeviceContext->PSGetShader(&ps, NULL, NULL);
+	dx->GetContext()->PSGetShader(&ps, NULL, NULL);
 	if(ps)
 	{
 		ps->Release();
@@ -119,21 +119,21 @@ static void drawQuads()
 	}
 
 	ID3D11ShaderResourceView *view;
-	dx->mDeviceContext->PSGetShaderResources(0, 1, &view);
+	dx->GetContext()->PSGetShaderResources(0, 1, &view);
 	ID3D11VertexShader *vs = (view) ? TEXTURE_VERTEX : COLOR_VERTEX;
 	ID3D11PixelShader *ps = (view) ? TEXTURE_PIXEL : COLOR_PIXEL;
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	dx->mDeviceContext->Map(dx->mCBMatrices, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	dx->GetContext()->Map(dx->mCBMatrices, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	reinterpret_cast<Matrix44f*>(mappedResource.pData)[0] = dx->mProjection.top();
 	reinterpret_cast<Matrix44f*>(mappedResource.pData)[1] = dx->mModelView.top();
-	dx->mDeviceContext->Unmap(dx->mCBMatrices, 0);
+	dx->GetContext()->Unmap(dx->mCBMatrices, 0);
 	if(dx->mLightingEnabled)
-		dx->mDeviceContext->VSSetConstantBuffers(1, 1, &dx->mCBLights);
-	dx->mDeviceContext->VSSetShader(vs, NULL, 0);
-	dx->mDeviceContext->VSSetConstantBuffers(0, 1, &dx->mCBMatrices);
-	dx->mDeviceContext->PSSetShader(ps, NULL, 0);
-	dx->mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		dx->GetContext()->VSSetConstantBuffers(1, 1, &dx->mCBLights);
+	dx->GetContext()->VSSetShader(vs, NULL, 0);
+	dx->GetContext()->VSSetConstantBuffers(0, 1, &dx->mCBMatrices);
+	dx->GetContext()->PSSetShader(ps, NULL, 0);
+	dx->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	size_t size =  sizeof(FixedVertex);
 	FixedVertex *vertices = dx->mImmediateModeVerts.data();
@@ -142,7 +142,7 @@ static void drawQuads()
 	{
 		size_t index = 0;
 		size_t count = 0;
-		dx->mDeviceContext->Map(dx->mVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		dx->GetContext()->Map(dx->mVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		FixedVertex *pData = static_cast<FixedVertex *>(mappedResource.pData);
 		size_t end = (vertexCount >= D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT) ? D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT : vertexCount;
 		while(count < end)
@@ -157,15 +157,15 @@ static void drawQuads()
 			count += 6;
 			index += 4;
 		}
-		dx->mDeviceContext->Unmap(dx->mVertexBuffer, 0);
+		dx->GetContext()->Unmap(dx->mVertexBuffer, 0);
 
 		if(count > 0) 
 		{
 			UINT stride = sizeof(FixedVertex);
 			UINT offset = 0;
-			dx->mDeviceContext->IASetVertexBuffers(0, 1, &dx->mVertexBuffer, &stride, &offset);
-			dx->mDeviceContext->IASetInputLayout(dx->mFixedLayout);
-			dx->mDeviceContext->Draw(count, 0);
+			dx->GetContext()->IASetVertexBuffers(0, 1, &dx->mVertexBuffer, &stride, &offset);
+			dx->GetContext()->IASetInputLayout(dx->mFixedLayout);
+			dx->GetContext()->Draw(count, 0);
 		}
 	}
 }
@@ -177,26 +177,26 @@ static void applyDxFixedPipeline(const FixedVertex *verts, UINT elements, ID3D11
 {
 	auto dx = getDxRenderer();
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	dx->mDeviceContext->Map(dx->mCBMatrices, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	dx->GetContext()->Map(dx->mCBMatrices, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	reinterpret_cast<Matrix44f*>(mappedResource.pData)[0] = dx->mProjection.top();
 	reinterpret_cast<Matrix44f*>(mappedResource.pData)[1] = dx->mModelView.top();
-	dx->mDeviceContext->Unmap(dx->mCBMatrices, 0);
+	dx->GetContext()->Unmap(dx->mCBMatrices, 0);
 	if(dx->mLightingEnabled) {
-		dx->mDeviceContext->VSSetConstantBuffers(1, 1, &dx->mCBLights);
+		dx->GetContext()->VSSetConstantBuffers(1, 1, &dx->mCBLights);
 	}
 	if( ! dx->getRenderFlag( app::AppImplMswRendererDx::CUSTOM_SHADER_ACTIVE ) ) {
-		dx->mDeviceContext->VSSetShader(vs, NULL, 0);
-		dx->mDeviceContext->PSSetShader(ps, NULL, 0);
+		dx->GetContext()->VSSetShader(vs, NULL, 0);
+		dx->GetContext()->PSSetShader(ps, NULL, 0);
 	}
-	dx->mDeviceContext->VSSetConstantBuffers(0, 1, &dx->mCBMatrices);
-	dx->mDeviceContext->IASetPrimitiveTopology(topology);
-	dx->mDeviceContext->Map( dx->mVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource );
+	dx->GetContext()->VSSetConstantBuffers(0, 1, &dx->mCBMatrices);
+	dx->GetContext()->IASetPrimitiveTopology(topology);
+	dx->GetContext()->Map( dx->mVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource );
 	memcpy( mappedResource.pData, verts, sizeof(FixedVertex) * elements );
-	dx->mDeviceContext->Unmap( dx->mVertexBuffer, 0 );
+	dx->GetContext()->Unmap( dx->mVertexBuffer, 0 );
 	UINT stride = sizeof(FixedVertex);
 	UINT offset = 0;
-	dx->mDeviceContext->IASetVertexBuffers( 0, 1, &dx->mVertexBuffer, &stride, &offset );
-	dx->mDeviceContext->IASetInputLayout( dx->mFixedLayout );
+	dx->GetContext()->IASetVertexBuffers( 0, 1, &dx->mVertexBuffer, &stride, &offset );
+	dx->GetContext()->IASetInputLayout( dx->mFixedLayout );
 }
 
 void clear( const ColorA &color, bool clearDepthBuffer )
@@ -214,9 +214,9 @@ void clear( const ColorA &color, bool clearDepthBuffer )
 	//else
 	{
 		auto dx = getDxRenderer();
-		dx->mDeviceContext->ClearRenderTargetView(dx->mMainFramebuffer, &color.r);
+		dx->GetContext()->ClearRenderTargetView(dx->mMainFramebuffer, &color.r);
 		if(clearDepthBuffer)
-			dx->mDeviceContext->ClearDepthStencilView(dx->mDepthStencilView, D3D11_CLEAR_DEPTH, 1, 0);
+			dx->GetContext()->ClearDepthStencilView(dx->mDepthStencilView, D3D11_CLEAR_DEPTH, 1, 0);
 	}
 }
 
@@ -523,7 +523,7 @@ Area getViewport()
 	{
 		D3D11_VIEWPORT viewport;
 		UINT viewport_count = 1;
-		getDxRenderer()->mDeviceContext->RSGetViewports(&viewport_count, &viewport);
+		getDxRenderer()->GetContext()->RSGetViewports(&viewport_count, &viewport);
 		return Area ( (int32_t)viewport.TopLeftX, (int32_t)viewport.TopLeftY, (int32_t)(viewport.TopLeftX + viewport.Width), (int32_t)(viewport.TopLeftY + viewport.Height) );
 	}
 //#endif
@@ -619,7 +619,7 @@ void end()
 		else
 		{
 			ID3D11ShaderResourceView *view;
-			dx->mDeviceContext->PSGetShaderResources(0, 1, &view);
+			dx->GetContext()->PSGetShaderResources(0, 1, &view);
 			ID3D11VertexShader *vs = (view) ? TEXTURE_VERTEX : COLOR_VERTEX;
 			ID3D11PixelShader *ps = (view) ? TEXTURE_PIXEL : COLOR_PIXEL;
 			D3D_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
@@ -729,7 +729,7 @@ void end()
 			while(vertexCount >= D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT) 
 			{
 				applyDxFixedPipeline(&fv[verticesProcessed], D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT , vs, ps, topology);
-				dx->mDeviceContext->Draw(D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT, 0);
+				dx->GetContext()->Draw(D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT, 0);
 				verticesProcessed += D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT;
 				vertexCount -= D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT;
 			}
@@ -737,7 +737,7 @@ void end()
 			if(vertexCount > 0) 
 			{
 				applyDxFixedPipeline(&fv[verticesProcessed], vertexCount, vs, ps, topology);
-				dx->mDeviceContext->Draw(vertexCount, 0);
+				dx->GetContext()->Draw(vertexCount, 0);
 			}
 		}
 		dx->mProjection.pop();
@@ -935,8 +935,8 @@ void enableWireframe()
 	rd.ScissorEnable = FALSE;
 	rd.MultisampleEnable = FALSE;
 	rd.AntialiasedLineEnable = FALSE;
-	dx->md3dDevice->CreateRasterizerState( &rd, &dx->mDefaultRenderState );
-	dx->mDeviceContext->RSSetState( dx->mDefaultRenderState );
+	dx->GetDevice()->CreateRasterizerState( &rd, &dx->mDefaultRenderState );
+	dx->GetContext()->RSSetState( dx->mDefaultRenderState );
 	//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 }
 
@@ -955,8 +955,8 @@ void disableWireframe()
 	rd.ScissorEnable = FALSE;
 	rd.MultisampleEnable = FALSE;
 	rd.AntialiasedLineEnable = FALSE;
-	dx->md3dDevice->CreateRasterizerState( &rd, &dx->mDefaultRenderState );
-	dx->mDeviceContext->RSSetState( dx->mDefaultRenderState );
+	dx->GetDevice()->CreateRasterizerState( &rd, &dx->mDefaultRenderState );
+	dx->GetContext()->RSSetState( dx->mDefaultRenderState );
 	//glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
 #endif
@@ -1041,9 +1041,9 @@ void setLight(const Light &light)
 	data.spotExponent = light.getSpotExponent();
 	data.spotCutoff = toRadians(light.getSpotCutoff());
 	D3D11_MAPPED_SUBRESOURCE subResource;
-	dx->mDeviceContext->Map(dx->mCBLights, 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
+	dx->GetContext()->Map(dx->mCBLights, 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
 	memcpy(subResource.pData, dx->mLights, sizeof(dx->mLights));
-	dx->mDeviceContext->Unmap(dx->mCBLights, 0);
+	dx->GetContext()->Unmap(dx->mCBLights, 0);
 
 }
 
@@ -1067,7 +1067,7 @@ void drawLine( const Vec2f &start, const Vec2f &end )
 		verts[0] = FixedVertex(Vec3f(start, 0), dx->mCurrentNormal, dx->mCurrentUV, dx->mCurrentColor);
 		verts[1] = FixedVertex(Vec3f(end, 0), dx->mCurrentNormal, dx->mCurrentUV, dx->mCurrentColor);
 		applyDxFixedPipeline(verts, 2, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_LINELIST );
-		dx->mDeviceContext->Draw(2, 0);
+		dx->GetContext()->Draw(2, 0);
 	}
 //#endif
 }
@@ -1088,12 +1088,12 @@ void drawLine( const Vec3f &start, const Vec3f &end )
 //	else
 	{
 		auto dx = getDxRenderer();
-		dx->mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		dx->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 		FixedVertex verts[2];
 		verts[0] = FixedVertex(start, dx->mCurrentNormal, dx->mCurrentUV, dx->mCurrentColor);
 		verts[1] = FixedVertex(end, dx->mCurrentNormal, dx->mCurrentUV, dx->mCurrentColor);
 		applyDxFixedPipeline(verts, 2, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_LINELIST );
-		dx->mDeviceContext->Draw(2, 0);
+		dx->GetContext()->Draw(2, 0);
 	}
 //#endif
 }
@@ -1197,10 +1197,10 @@ void drawCubeImpl( const Vec3f &c, const Vec3f &size, bool drawColors )
 									16,17,18,16,18,19,
 									20,21,22,20,22,23 };
 		//D3D11_BOX box = { 0, 0, 0, sizeof( indices16 ), 1, 1 };
-		//dx->mDeviceContext->UpdateSubresource(dx->mIndexBuffer, 0, &box, indices16, 0, 0);
+		//dx->GetContext()->UpdateSubresource(dx->mIndexBuffer, 0, &box, indices16, 0, 0);
 		applyDxFixedPipeline( verts, sizeof(verts) / sizeof(verts[0]), COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-		dx->mDeviceContext->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-		dx->mDeviceContext->DrawIndexed(36, 0, 0);
+		dx->GetContext()->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+		dx->GetContext()->DrawIndexed(36, 0, 0);
 	} 
 //#endif
 }
@@ -1327,7 +1327,7 @@ void drawSphere( const Vec3f &center, float radius, int segments )
 			}
 			UINT dataSize = sizeof( FixedVertex ) * ( segments + 1 ) * 2;
 			applyDxFixedPipeline(vertices, (segments + 1) * 2, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
-			dx->mDeviceContext->Draw((segments + 1) * 2, 0);
+			dx->GetContext()->Draw((segments + 1) * 2, 0);
 		}
 	}
 //#endif
@@ -1386,7 +1386,7 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 		}
 
 		applyDxFixedPipeline( verts, 3 * numSegments, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-		dx->mDeviceContext->Draw((1 + numSegments) * 3, 0);
+		dx->GetContext()->Draw((1 + numSegments) * 3, 0);
 		delete [] verts;
 	}
 //#endif
@@ -1429,7 +1429,7 @@ void drawStrokedCircle( const Vec2f &center, float radius, int numSegments )
 		}
 
 		applyDxFixedPipeline( verts, numSegments + 1, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP );
-		dx->mDeviceContext->Draw(numSegments + 1, 0);
+		dx->GetContext()->Draw(numSegments + 1, 0);
 
 		delete [] verts;
 	}
@@ -1481,7 +1481,7 @@ void drawSolidEllipse( const Vec2f &center, float radiusX, float radiusY, int nu
 
 		UINT dataSize = sizeof( FixedVertex ) * ( (1 + numSegments) * 3);
 		applyDxFixedPipeline( verts, (1 + numSegments) * 3, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-		dx->mDeviceContext->Draw((1 + numSegments) * 3, 0);
+		dx->GetContext()->Draw((1 + numSegments) * 3, 0);
 		delete [] verts;
 	}
 //#endif
@@ -1523,7 +1523,7 @@ void drawStrokedEllipse( const Vec2f &center, float radiusX, float radiusY, int 
 			verts[s].uv = dx->mCurrentUV;
 		}
 		applyDxFixedPipeline( verts, numSegments + 1, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP );
-		dx->mDeviceContext->Draw(numSegments + 1, 0);
+		dx->GetContext()->Draw(numSegments + 1, 0);
 		delete [] verts;
 	}
 //#endif
@@ -1564,7 +1564,7 @@ void drawSolidRect( const Rectf &rect, bool textureRectangle )
 			FixedVertex(Vec3f(rect.getX1(), rect.getY2(), 0), dx->mCurrentNormal, Vec2f((textureRectangle) ? rect.getX1() : 1, (textureRectangle) ? rect.getY2() : 0), dx->mCurrentColor)
 		};
 		applyDxFixedPipeline( verts, 4, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
-		dx->mDeviceContext->Draw( 4, 0 );
+		dx->GetContext()->Draw( 4, 0 );
 	}
 //#endif
 }
@@ -1595,7 +1595,7 @@ void drawStrokedRect( const Rectf &rect )
 			FixedVertex(Vec3f(rect.getX1(), rect.getY1(), 0), dx->mCurrentNormal, dx->mCurrentUV, dx->mCurrentColor),
 		};
 		applyDxFixedPipeline(verts, 5, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		dx->mDeviceContext->Draw(5, 0);
+		dx->GetContext()->Draw(5, 0);
 	}
 //#endif
 }
@@ -1683,7 +1683,7 @@ void drawSolidRoundedRect( const Rectf &r, float cornerRadius, int numSegmentsPe
 			verts[currentVert++] = vert;
 		}
 		applyDxFixedPipeline(verts, (numSegmentsPerCorner * 4 + 4) * 3, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		dx->mDeviceContext->Draw(currentVert, 0);
+		dx->GetContext()->Draw(currentVert, 0);
 		delete [] verts;
 	}
 //#endif
@@ -1743,7 +1743,7 @@ void drawStrokedRoundedRect( const Rectf &r, float cornerRadius, int numSegments
 		}
 		verts[tri++] = verts[0];
 		applyDxFixedPipeline(verts, (numSegmentsPerCorner + 1) * 4 + 1, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		dx->mDeviceContext->Draw(tri, 0);
+		dx->GetContext()->Draw(tri, 0);
 		delete [] verts;
 	}
 //#endif
@@ -1772,7 +1772,7 @@ void drawSolidTriangle( const Vec2f pts[3] )
 		for(int i = 0; i < 3; ++i)
 			verts[i] = FixedVertex(Vec3f(pts[i], 0), dx->mCurrentNormal, dx->mCurrentUV, dx->mCurrentColor);
 		applyDxFixedPipeline(verts, 3, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		dx->mDeviceContext->Draw(3, 0);
+		dx->GetContext()->Draw(3, 0);
 	}
 //#endif
 }
@@ -1804,7 +1804,7 @@ void drawSolidTriangle( const Vec2f pts[3], const Vec2f texCoord[3] )
 		for(int i = 0; i < 3; ++i)
 			verts[i] = FixedVertex(Vec3f(pts[i], 0), dx->mCurrentNormal, texCoord[i], dx->mCurrentColor);
 		applyDxFixedPipeline(verts, 3, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		dx->mDeviceContext->Draw(3, 0);
+		dx->GetContext()->Draw(3, 0);
 	}
 //#endif
 }
@@ -1833,7 +1833,7 @@ void drawStrokedTriangle( const Vec2f pts[3] )
 			verts[i] = FixedVertex(Vec3f(pts[i], 0), dx->mCurrentNormal, dx->mCurrentUV, dx->mCurrentColor);
 		verts[3] = verts[0];
 		applyDxFixedPipeline(verts, 4, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		dx->mDeviceContext->Draw(4, 0);
+		dx->GetContext()->Draw(4, 0);
 	}
 //#endif
 }
@@ -1934,7 +1934,7 @@ void drawVector( const Vec3f &start, const Vec3f &end, float headLength, float h
 			fixedConeVerts[i*3+2] = vert;
 		}
 		applyDxFixedPipeline(fixedConeVerts, NUM_SEGMENTS * 3, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		dx->mDeviceContext->Draw(NUM_SEGMENTS * 3, 0);
+		dx->GetContext()->Draw(NUM_SEGMENTS * 3, 0);
 
 		// draw the cap
 		coneVerts[0] = end;
@@ -1954,7 +1954,7 @@ void drawVector( const Vec3f &start, const Vec3f &end, float headLength, float h
 			fixedConeVerts[i*3+2] = vert;
 		}
 		applyDxFixedPipeline(fixedConeVerts, NUM_SEGMENTS * 3, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		dx->mDeviceContext->Draw(NUM_SEGMENTS * 3, 0);
+		dx->GetContext()->Draw(NUM_SEGMENTS * 3, 0);
 	}
 //#endif
 }
@@ -2124,14 +2124,14 @@ void drawTorus( float outterRadius, float innerRadius, int longitudeSegments, in
 //		else
 		{
 			D3D11_MAPPED_SUBRESOURCE mappedResource;
-			dx->mDeviceContext->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+			dx->GetContext()->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 			memcpy(mappedResource.pData, indices, sizeof(GLushort) * latitudeSegments * 2);
-			dx->mDeviceContext->Unmap(dx->mIndexBuffer, 0);
+			dx->GetContext()->Unmap(dx->mIndexBuffer, 0);
 			//D3D11_BOX box = { 0, 0, 0, sizeof( GLushort ) * latitudeSegments * 2, 1, 1 };
-			//dx->mDeviceContext->UpdateSubresource(dx->mIndexBuffer, 0, &box, indices, 0, 0);
+			//dx->GetContext()->UpdateSubresource(dx->mIndexBuffer, 0, &box, indices, 0, 0);
 
-			dx->mDeviceContext->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-			dx->mDeviceContext->DrawIndexed(latitudeSegments*2, 0, 0);
+			dx->GetContext()->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+			dx->GetContext()->DrawIndexed(latitudeSegments*2, 0, 0);
 		}
 //#endif
 	}
@@ -2217,13 +2217,13 @@ void drawCylinder( float base, float top, float height, int slices, int stacks )
 //		else
 		{
 			D3D11_MAPPED_SUBRESOURCE subresource;
-			dx->mDeviceContext->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
+			dx->GetContext()->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
 			memcpy(subresource.pData, indices, sizeof(GLushort) * slices * 2);
-			dx->mDeviceContext->Unmap(dx->mIndexBuffer, 0);
+			dx->GetContext()->Unmap(dx->mIndexBuffer, 0);
 			//D3D11_BOX box = { 0, 0, 0, sizeof( GLushort ) * slices * 2, 1, 1 };
-			//dx->mDeviceContext->UpdateSubresource(dx->mIndexBuffer, 0, &box, indices, 0, 0);
-			dx->mDeviceContext->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-			dx->mDeviceContext->DrawIndexed(slices*2, 0, 0);
+			//dx->GetContext()->UpdateSubresource(dx->mIndexBuffer, 0, &box, indices, 0, 0);
+			dx->GetContext()->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+			dx->GetContext()->DrawIndexed(slices*2, 0, 0);
 		}
 //#endif
 	}
@@ -2261,7 +2261,7 @@ void draw( const PolyLine<Vec2f> &polyLine )
 			verts[i] = FixedVertex(Vec3f(polyLine.getPoints()[i], 0), dx->mCurrentNormal, dx->mCurrentUV, dx->mCurrentColor);
 		verts[polyLine.getPoints().size()] = verts[0];
 		applyDxFixedPipeline(verts, polyLine.getPoints().size() + 1, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		dx->mDeviceContext->Draw((polyLine.isClosed()) ? polyLine.getPoints().size() + 1 : polyLine.getPoints().size(), 0);
+		dx->GetContext()->Draw((polyLine.isClosed()) ? polyLine.getPoints().size() + 1 : polyLine.getPoints().size(), 0);
 		delete [] verts;
 	}
 //#endif
@@ -2285,7 +2285,7 @@ void draw( const PolyLine<Vec3f> &polyLine )
 			verts[i] = FixedVertex(polyLine.getPoints()[i], dx->mCurrentNormal, dx->mCurrentUV, dx->mCurrentColor);
 		verts[polyLine.getPoints().size()] = verts[0];
 		applyDxFixedPipeline(verts, polyLine.getPoints().size() + 1, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		dx->mDeviceContext->Draw((polyLine.isClosed()) ? polyLine.getPoints().size() + 1 : polyLine.getPoints().size(), 0);
+		dx->GetContext()->Draw((polyLine.isClosed()) ? polyLine.getPoints().size() + 1 : polyLine.getPoints().size(), 0);
 		delete [] verts;
 	}
 //#endif
@@ -2312,7 +2312,7 @@ void draw( const Path2d &path2d, float approximationScale )
 		for(unsigned i = 0; i < pointCount; ++i)
 			verts[i] = FixedVertex(Vec3f(points[i], 0), dx->mCurrentNormal, dx->mCurrentUV, dx->mCurrentColor);
 		applyDxFixedPipeline(verts, points.size(), COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		dx->mDeviceContext->Draw(points.size(), 0);
+		dx->GetContext()->Draw(points.size(), 0);
 		delete [] verts;
 	}
 //#endif
@@ -2344,7 +2344,7 @@ void draw( const Shape2d &shape2d, float approximationScale )
 			for(unsigned i = 0; i < points.size(); ++i)
 				verts[i] = FixedVertex(Vec3f(points[i], 0), dx->mCurrentNormal, dx->mCurrentUV, dx->mCurrentColor);
 			applyDxFixedPipeline(verts, points.size(), COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-			dx->mDeviceContext->Draw(points.size(), 0);
+			dx->GetContext()->Draw(points.size(), 0);
 			delete [] verts;
 		}
 	}
@@ -2434,13 +2434,13 @@ void draw( const TriMesh2d &mesh )
 		}
 		applyDxFixedPipeline(verts, vertCount, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		D3D11_MAPPED_SUBRESOURCE subresource;
-		dx->mDeviceContext->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
+		dx->GetContext()->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
 		memcpy(subresource.pData, &mesh.getIndices()[0], sizeof(GLuint) * mesh.getIndices().size());
-		dx->mDeviceContext->Unmap(dx->mIndexBuffer, 0);
+		dx->GetContext()->Unmap(dx->mIndexBuffer, 0);
 		//D3D11_BOX box = { 0, 0, 0, sizeof(GLuint) * mesh.getIndices().size(), 1, 1 };
-		//dx->mDeviceContext->UpdateSubresource(dx->mIndexBuffer, 0, &box, &mesh.getIndices()[0], 0, 0);
-		dx->mDeviceContext->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		dx->mDeviceContext->DrawIndexed(mesh.getIndices().size(), 0, 0);
+		//dx->GetContext()->UpdateSubresource(dx->mIndexBuffer, 0, &box, &mesh.getIndices()[0], 0, 0);
+		dx->GetContext()->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		dx->GetContext()->DrawIndexed(mesh.getIndices().size(), 0, 0);
 		delete [] verts;
 	}
 //#endif
@@ -2513,13 +2513,13 @@ void drawRange( const TriMesh2d &mesh, size_t startTriangle, size_t triangleCoun
 		}
 		applyDxFixedPipeline(verts, vertCount, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		D3D11_MAPPED_SUBRESOURCE subresource;
-		dx->mDeviceContext->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
+		dx->GetContext()->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
 		memcpy(subresource.pData, &mesh.getIndices()[0], sizeof(GLuint) * mesh.getIndices().size());
-		dx->mDeviceContext->Unmap(dx->mIndexBuffer, 0);
+		dx->GetContext()->Unmap(dx->mIndexBuffer, 0);
 		//D3D11_BOX box = { 0, 0, 0, sizeof(GLuint) * mesh.getIndices().size(), 1, 1 };
-		//dx->mDeviceContext->UpdateSubresource(dx->mIndexBuffer, 0, &box, &mesh.getIndices()[0], 0, 0);
-		dx->mDeviceContext->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		dx->mDeviceContext->DrawIndexed(triangleCount * 3, startTriangle, 0);
+		//dx->GetContext()->UpdateSubresource(dx->mIndexBuffer, 0, &box, &mesh.getIndices()[0], 0, 0);
+		dx->GetContext()->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		dx->GetContext()->DrawIndexed(triangleCount * 3, startTriangle, 0);
 		delete [] verts;
 	}
 //#endif
@@ -2593,13 +2593,13 @@ void draw( const TriMesh &mesh )
 		}
 		applyDxFixedPipeline(verts, vertCount, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		D3D11_MAPPED_SUBRESOURCE subresource;
-		dx->mDeviceContext->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
+		dx->GetContext()->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
 		memcpy(subresource.pData, &mesh.getIndices()[0], sizeof(GLuint) * mesh.getIndices().size());
-		dx->mDeviceContext->Unmap(dx->mIndexBuffer, 0);
+		dx->GetContext()->Unmap(dx->mIndexBuffer, 0);
 		//D3D11_BOX box = { 0, 0, 0, sizeof(GLuint) * mesh.getIndices().size(), 1, 1 };
-		//dx->mDeviceContext->UpdateSubresource(dx->mIndexBuffer, 0, &box, &mesh.getIndices()[0], 0, 0);
-		dx->mDeviceContext->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		dx->mDeviceContext->DrawIndexed(mesh.getIndices().size(), 0, 0);
+		//dx->GetContext()->UpdateSubresource(dx->mIndexBuffer, 0, &box, &mesh.getIndices()[0], 0, 0);
+		dx->GetContext()->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		dx->GetContext()->DrawIndexed(mesh.getIndices().size(), 0, 0);
 		delete [] verts;
 	}
 //#endif
@@ -2677,13 +2677,13 @@ void drawRange( const TriMesh &mesh, size_t startTriangle, size_t triangleCount 
 		}
 		applyDxFixedPipeline(verts, vertCount, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		D3D11_MAPPED_SUBRESOURCE subresource;
-		dx->mDeviceContext->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
+		dx->GetContext()->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
 		memcpy(subresource.pData, &mesh.getIndices()[0], sizeof(GLuint) * mesh.getIndices().size());
-		dx->mDeviceContext->Unmap(dx->mIndexBuffer, 0);
+		dx->GetContext()->Unmap(dx->mIndexBuffer, 0);
 		//D3D11_BOX box = { 0, 0, 0, sizeof(GLuint) * mesh.getIndices().size(), 1, 1 };
-		//dx->mDeviceContext->UpdateSubresource(dx->mIndexBuffer, 0, &box, &mesh.getIndices()[0], 0, 0);
-		dx->mDeviceContext->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		dx->mDeviceContext->DrawIndexed(triangleCount * 3, startTriangle, 0);
+		//dx->GetContext()->UpdateSubresource(dx->mIndexBuffer, 0, &box, &mesh.getIndices()[0], 0, 0);
+		dx->GetContext()->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		dx->GetContext()->DrawIndexed(triangleCount * 3, startTriangle, 0);
 		delete [] verts;
 	}
 //#endif
@@ -2709,48 +2709,48 @@ void drawRange( const VboMesh &vbo, size_t startIndex, size_t indexCount, int ve
 	if(!dx->getRenderFlag(app::AppImplMswRendererDx::CUSTOM_SHADER_ACTIVE))
 	{
 		ID3D11ShaderResourceView *view;
-		dx->mDeviceContext->PSGetShaderResources(0, 1, &view);
+		dx->GetContext()->PSGetShaderResources(0, 1, &view);
 		bool hasNormals = vbo.getLayout().hasNormals();
 		bool hasColors = vbo.getLayout().hasColorsRGB() || vbo.getLayout().hasColorsRGBA();
 		bool hasUVs = vbo.getLayout().hasTexCoords(0);
 		bool lightsEnabled = dx->mLightingEnabled;
 		if(hasNormals && hasColors && hasUVs)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalColorTextureLightVS : dx->mVboPositionNormalColorTextureVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalColorTextureLightVS : dx->mVboPositionNormalColorTextureVS, NULL, 0);
 		else if(hasNormals && hasColors)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalColorLightVS : dx->mVboPositionNormalColorVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalColorLightVS : dx->mVboPositionNormalColorVS, NULL, 0);
 		else if(hasNormals && hasUVs)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalTextureLightVS : dx->mVboPositionNormalTextureVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalTextureLightVS : dx->mVboPositionNormalTextureVS, NULL, 0);
 		else if(hasNormals)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalLightVS : dx->mVboPositionNormalVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalLightVS : dx->mVboPositionNormalVS, NULL, 0);
 		else if(hasColors && hasUVs)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionColorTextureLightVS : dx->mVboPositionColorTextureVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionColorTextureLightVS : dx->mVboPositionColorTextureVS, NULL, 0);
 		else if(hasColors)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionColorLightVS : dx->mVboPositionColorVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionColorLightVS : dx->mVboPositionColorVS, NULL, 0);
 		else if(hasUVs)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionTextureLightVS : dx->mVboPositionTextureVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionTextureLightVS : dx->mVboPositionTextureVS, NULL, 0);
 		else
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionLightVS : dx->mVboPositionVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionLightVS : dx->mVboPositionVS, NULL, 0);
 		if(view)
-			dx->mDeviceContext->PSSetShader(TEXTURE_PIXEL, NULL, 0);
+			dx->GetContext()->PSSetShader(TEXTURE_PIXEL, NULL, 0);
 		else
-			dx->mDeviceContext->PSSetShader(COLOR_PIXEL, NULL , 0);
+			dx->GetContext()->PSSetShader(COLOR_PIXEL, NULL , 0);
 	}
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	dx->mDeviceContext->Map(dx->mCBMatrices, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	dx->GetContext()->Map(dx->mCBMatrices, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	reinterpret_cast<Matrix44f*>(mappedResource.pData)[0] = dx->mProjection.top();
 	reinterpret_cast<Matrix44f*>(mappedResource.pData)[1] = dx->mModelView.top();
-	dx->mDeviceContext->Unmap(dx->mCBMatrices, 0);
-	dx->mDeviceContext->Map(dx->mCBFixedParameters, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	dx->GetContext()->Unmap(dx->mCBMatrices, 0);
+	dx->GetContext()->Map(dx->mCBFixedParameters, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	reinterpret_cast<Vec4f*>(mappedResource.pData)[0] = dx->mCurrentNormal;
 	reinterpret_cast<Vec4f*>(mappedResource.pData)[1] = Vec4f(dx->mCurrentUV.x, dx->mCurrentUV.y, 0, 0);
 	reinterpret_cast<Vec4f*>(mappedResource.pData)[2] = dx->mCurrentColor;
-	dx->mDeviceContext->Unmap(dx->mCBFixedParameters, 0);
-	dx->mDeviceContext->VSSetConstantBuffers(0, 1, &dx->mCBMatrices);
-	dx->mDeviceContext->VSSetConstantBuffers(1, 1, &dx->mCBLights);
-	dx->mDeviceContext->VSSetConstantBuffers(2, 1, &dx->mCBFixedParameters);
-	dx->mDeviceContext->IASetPrimitiveTopology(vbo.getPrimitiveType());
+	dx->GetContext()->Unmap(dx->mCBFixedParameters, 0);
+	dx->GetContext()->VSSetConstantBuffers(0, 1, &dx->mCBMatrices);
+	dx->GetContext()->VSSetConstantBuffers(1, 1, &dx->mCBLights);
+	dx->GetContext()->VSSetConstantBuffers(2, 1, &dx->mCBFixedParameters);
+	dx->GetContext()->IASetPrimitiveTopology(vbo.getPrimitiveType());
 	vbo.bindAllData();
-	dx->mDeviceContext->DrawIndexed(indexCount, startIndex, vertexStart);
+	dx->GetContext()->DrawIndexed(indexCount, startIndex, vertexStart);
 
 	//vbo.enableClientStates();
 	//vbo.bindAllData();
@@ -2770,48 +2770,48 @@ void drawArrays( const VboMesh &vbo, GLint first, GLsizei count )
 	if(!dx->getRenderFlag(app::AppImplMswRendererDx::CUSTOM_SHADER_ACTIVE))
 	{
 		ID3D11ShaderResourceView *view;
-		dx->mDeviceContext->PSGetShaderResources(0, 1, &view);
+		dx->GetContext()->PSGetShaderResources(0, 1, &view);
 		bool hasNormals = vbo.getLayout().hasNormals();
 		bool hasColors = vbo.getLayout().hasColorsRGB() || vbo.getLayout().hasColorsRGBA();
 		bool hasUVs = vbo.getLayout().hasTexCoords(0);
 		bool lightsEnabled = dx->mLightingEnabled;
 		if(hasNormals && hasColors && hasUVs)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalColorTextureLightVS : dx->mVboPositionNormalColorTextureVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalColorTextureLightVS : dx->mVboPositionNormalColorTextureVS, NULL, 0);
 		else if(hasNormals && hasColors)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalColorLightVS : dx->mVboPositionNormalColorVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalColorLightVS : dx->mVboPositionNormalColorVS, NULL, 0);
 		else if(hasNormals && hasUVs)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalTextureLightVS : dx->mVboPositionNormalTextureVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalTextureLightVS : dx->mVboPositionNormalTextureVS, NULL, 0);
 		else if(hasNormals)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalLightVS : dx->mVboPositionNormalVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionNormalLightVS : dx->mVboPositionNormalVS, NULL, 0);
 		else if(hasColors && hasUVs)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionColorTextureLightVS : dx->mVboPositionColorTextureVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionColorTextureLightVS : dx->mVboPositionColorTextureVS, NULL, 0);
 		else if(hasColors)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionColorLightVS : dx->mVboPositionColorVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionColorLightVS : dx->mVboPositionColorVS, NULL, 0);
 		else if(hasUVs)
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionTextureLightVS : dx->mVboPositionTextureVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionTextureLightVS : dx->mVboPositionTextureVS, NULL, 0);
 		else
-			dx->mDeviceContext->VSSetShader((lightsEnabled) ? dx->mVboPositionLightVS : dx->mVboPositionVS, NULL, 0);
+			dx->GetContext()->VSSetShader((lightsEnabled) ? dx->mVboPositionLightVS : dx->mVboPositionVS, NULL, 0);
 		if(view)
-			dx->mDeviceContext->PSSetShader(TEXTURE_PIXEL, NULL, 0);
+			dx->GetContext()->PSSetShader(TEXTURE_PIXEL, NULL, 0);
 		else
-			dx->mDeviceContext->PSSetShader(COLOR_PIXEL, NULL , 0);
+			dx->GetContext()->PSSetShader(COLOR_PIXEL, NULL , 0);
 	}
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	dx->mDeviceContext->Map(dx->mCBMatrices, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	dx->GetContext()->Map(dx->mCBMatrices, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	reinterpret_cast<Matrix44f*>(mappedResource.pData)[0] = dx->mProjection.top();
 	reinterpret_cast<Matrix44f*>(mappedResource.pData)[1] = dx->mModelView.top();
-	dx->mDeviceContext->Unmap(dx->mCBMatrices, 0);
-	dx->mDeviceContext->Map(dx->mCBFixedParameters, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	dx->GetContext()->Unmap(dx->mCBMatrices, 0);
+	dx->GetContext()->Map(dx->mCBFixedParameters, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	reinterpret_cast<Vec4f*>(mappedResource.pData)[0] = dx->mCurrentNormal;
 	reinterpret_cast<Vec4f*>(mappedResource.pData)[1] = Vec4f(dx->mCurrentUV.x, dx->mCurrentUV.y, 0, 0);
 	reinterpret_cast<Vec4f*>(mappedResource.pData)[2] = dx->mCurrentColor;
-	dx->mDeviceContext->Unmap(dx->mCBFixedParameters, 0);
-	dx->mDeviceContext->VSSetConstantBuffers(0, 1, &dx->mCBMatrices);
-	dx->mDeviceContext->VSSetConstantBuffers(1, 1, &dx->mCBLights);
-	dx->mDeviceContext->VSSetConstantBuffers(2, 1, &dx->mCBFixedParameters);
-	dx->mDeviceContext->IASetPrimitiveTopology(vbo.getPrimitiveType());
+	dx->GetContext()->Unmap(dx->mCBFixedParameters, 0);
+	dx->GetContext()->VSSetConstantBuffers(0, 1, &dx->mCBMatrices);
+	dx->GetContext()->VSSetConstantBuffers(1, 1, &dx->mCBLights);
+	dx->GetContext()->VSSetConstantBuffers(2, 1, &dx->mCBFixedParameters);
+	dx->GetContext()->IASetPrimitiveTopology(vbo.getPrimitiveType());
 	vbo.bindAllData();
-	dx->mDeviceContext->Draw(count, first);
+	dx->GetContext()->Draw(count, first);
 	//vbo.enableClientStates();
 	//vbo.bindAllData();
 	//glDrawArrays( vbo.getPrimitiveType(), first, count );
@@ -2859,7 +2859,7 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationDegrees,
 			FixedVertex(verts[0], dx->mCurrentNormal, Vec2f(texCoords[6], texCoords[7]), dx->mCurrentColor)
 		};
 		applyDxFixedPipeline(fixedVerts, 4, COLOR_VERTEX, COLOR_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		dx->mDeviceContext->Draw(4, 0);
+		dx->GetContext()->Draw(4, 0);
 	}
 //#endif
 }
@@ -2952,7 +2952,7 @@ void draw( const TextureRef &texture, const Area &srcArea, const Rectf &destRect
 			};
 			applyDxFixedPipeline(verts, 4, TEXTURE_VERTEX, TEXTURE_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 			texture->bind();
-			dx->mDeviceContext->Draw(4, 0);
+			dx->GetContext()->Draw(4, 0);
 			texture->unbind();
 		}
 	}
@@ -2976,8 +2976,8 @@ void batchTextureEnd()
 		const size_t vertexCount = vertices.size();
 		int batches = 0;
 		for(int verticesProcessed = 0; verticesProcessed < (int)vertexCount - D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT; verticesProcessed += D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT, ++batches)
-			dx->mDeviceContext->Draw(std::min(vertexCount, (size_t)D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT), verticesProcessed);
-		dx->mDeviceContext->Draw(vertexCount % D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT, D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT * batches);
+			dx->GetContext()->Draw(std::min(vertexCount, (size_t)D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT), verticesProcessed);
+		dx->GetContext()->Draw(vertexCount % D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT, D3D_FL9_1_IA_PRIMITIVE_MAX_COUNT * batches);
 	}
 	dx->mBatchedTextures.clear();
 	dx->mCurrentBatchTexture = nullptr;
@@ -3052,11 +3052,11 @@ void draw( const TextureRef &texture, const std::vector<float> &verts, const std
 	texture->bind();
 	applyDxFixedPipeline(&wholeVertices[0], wholeVertices.size(), TEXTURE_VERTEX, TEXTURE_PIXEL, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	D3D11_MAPPED_SUBRESOURCE subresource;
-	dx->mDeviceContext->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
+	dx->GetContext()->Map(dx->mIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
 	memcpy(subresource.pData, &indices[0], sizeof(uint32_t) * indices.size());
-	dx->mDeviceContext->Unmap(dx->mIndexBuffer, 0);
-	dx->mDeviceContext->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	dx->mDeviceContext->DrawIndexed(indices.size(), 0, 0);
+	dx->GetContext()->Unmap(dx->mIndexBuffer, 0);
+	dx->GetContext()->IASetIndexBuffer(dx->mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	dx->GetContext()->DrawIndexed(indices.size(), 0, 0);
 }
 
 } } // namespace gl::cinder
