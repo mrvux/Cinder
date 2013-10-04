@@ -355,6 +355,9 @@
     <ClInclude Include="..\include\cinder\dx\VertexBuffer.h">
       <Filter>Header Files\dx</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\VertexElements.h">
+      <Filter>Header Files\dx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cinder\app\App.cpp">
@@ -832,6 +835,9 @@
       <Filter>Source Files\dx</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cinder\dx\VertexBuffer.cpp">
+      <Filter>Source Files\dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\VertexElements.cpp">
       <Filter>Source Files\dx</Filter>
     </ClCompile>
   </ItemGroup>

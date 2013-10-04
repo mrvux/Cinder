@@ -293,6 +293,7 @@
     <ClInclude Include="..\include\cinder\dx\PlatformHelpers.h" />
     <ClInclude Include="..\include\cinder\dx\RasterizerStates.h" />
     <ClInclude Include="..\include\cinder\dx\VertexBuffer.h" />
+    <ClInclude Include="..\include\cinder\dx\VertexElements.h" />
     <ClInclude Include="..\include\cinder\Exception.h" />
     <ClInclude Include="..\include\cinder\Filesystem.h" />
     <ClInclude Include="..\include\cinder\ImageIo.h" />
@@ -394,6 +395,7 @@
     <ClCompile Include="..\src\cinder\dx\IndexBuffer.cpp" />
     <ClCompile Include="..\src\cinder\dx\RasterizerStates.cpp" />
     <ClCompile Include="..\src\cinder\dx\VertexBuffer.cpp" />
+    <ClCompile Include="..\src\cinder\dx\VertexElements.cpp" />
     <ClCompile Include="..\src\cinder\Font.cpp" />
     <ClCompile Include="..\src\cinder\ImageIo.cpp" />
     <ClCompile Include="..\src\cinder\ImageSourceFileWic.cpp" />
