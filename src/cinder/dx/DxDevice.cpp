@@ -76,9 +76,29 @@ void DxDevice::Initialize(UINT flags)
 	#if USE_D3D11_1
 	device->QueryInterface(__uuidof(ID3D11Device1), (void**)&mObj->mDevice);
 	context->QueryInterface(__uuidof(ID3D11DeviceContext1), (void**)&mObj->mContext);
+
+	//Get adapter and factory
+	IDXGIDevice2* dxgidevice;
+	mObj->mDevice->QueryInterface(__uuidof(IDXGIDevice2),(void**)(&dxgidevice));
+
+	IDXGIAdapter* adapter;
+	dxgidevice->GetAdapter(&adapter);
+
+	mObj->mAdapter = (IDXGIAdapter2*)adapter;
+	mObj->mAdapter->GetParent(__uuidof(IDXGIFactory2),(void**)(&mObj->mFactory));
 	#else
 	mObj->mDevice = device;
 	mObj->mContext = context;
+
+	//Get adapter and factory
+	IDXGIDevice1* dxgidevice;
+	mObj->mDevice->QueryInterface(__uuidof(IDXGIDevice1),(void**)(&dxgidevice));
+
+	IDXGIAdapter* adapter;
+	dxgidevice->GetAdapter(&adapter);
+
+	mObj->mAdapter = (IDXGIAdapter1*)adapter;
+	mObj->mAdapter->GetParent(__uuidof(IDXGIFactory1),(void**)(&mObj->mFactory));
 	#endif
 
 	mBufferSupport = true;
@@ -92,15 +112,7 @@ void DxDevice::Initialize(UINT flags)
 	}
 
 
-	//Get adapter and factory
-	IDXGIDevice1* dxgidevice;
-	mObj->mDevice->QueryInterface(__uuidof(IDXGIDevice1),(void**)(&dxgidevice));
 
-	IDXGIAdapter* adapter;
-	dxgidevice->GetAdapter(&adapter);
-
-	mObj->mAdapter = (IDXGIAdapter1*)adapter;
-	mObj->mAdapter->GetParent(__uuidof(IDXGIFactory1),(void**)(&mObj->mFactory));
 }
 
 } }

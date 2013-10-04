@@ -43,6 +43,7 @@ using namespace Windows::UI::Core;
 using namespace Windows::Foundation;
 using namespace Windows::Graphics::Display;
 using namespace cinder::winrt;
+using namespace cinder::dx;
 #endif
 
 namespace Shaders {
@@ -183,9 +184,7 @@ AppImplMswRendererDx::AppImplMswRendererDx( App *aApp, RendererDx *aRenderer )
   mRenderer( aRenderer ),
   mDevice( NULL ),
   mSwapChain( NULL ),
-  mMainFramebuffer( NULL ),
-  mDepthStencilTexture( NULL ),
-  mDepthStencilView( NULL ),
+  mDepthStencil( NULL ),
   mFixedColorVertexShader( NULL ),
   mFixedColorPixelShader( NULL ),
   mFixedColorLightVertexShader( NULL ),
@@ -233,14 +232,7 @@ void AppImplMswRendererDx::prepareToggleFullScreen()
 void AppImplMswRendererDx::finishToggleFullScreen()
 {
 	mFullScreen = !mFullScreen;
-	if(mFullScreen)
-	{
-		mSwapChain->SetFullscreenState(TRUE, NULL);
-	}
-	else
-	{
-		mSwapChain->SetFullscreenState(FALSE, NULL);
-	}
+	mSwapChain->SetFullScreen(mFullScreen);
 }
 
 void AppImplMswRendererDx::getPlatformWindowDimensions(DX_WINDOW_TYPE wnd, float* width, float* height) const {
@@ -291,8 +283,8 @@ void AppImplMswRendererDx::releaseNonDeviceResources()
 	if(mBlendState) mBlendState->Release(); mBlendState = NULL;
 	if(mDefaultRenderState) mDefaultRenderState->Release(); mDefaultRenderState = NULL;
 	if(mDepthStencilState) mDepthStencilState->Release(); mDepthStencilState = NULL;
-	if(mMainFramebuffer) mMainFramebuffer->Release(); mMainFramebuffer = NULL;
-	if(mSwapChain) mSwapChain->Release(); mSwapChain = NULL;
+	if(mSwapChain) delete mSwapChain; mSwapChain = NULL;
+	if (mDepthStencil) delete mDepthStencil; mDepthStencil = NULL;
 }
 
 void AppImplMswRendererDx::defaultResize() const
@@ -305,10 +297,9 @@ void AppImplMswRendererDx::defaultResize() const
 
 	ID3D11RenderTargetView *view = NULL;
 	mDevice->GetContext()->OMSetRenderTargets(1, &view, NULL);
-	mMainFramebuffer->Release();
-	mDepthStencilView->Release();
 	mDevice->GetContext()->Flush();
-	const_cast<AppImplMswRendererDx*>(this)->createFramebufferResources();
+
+	mSwapChain->Resize(2,width,height,DXGI_FORMAT_R8G8B8A8_UNORM);
 
 	cinder::CameraPersp cam( static_cast<int>(width), static_cast<int>(height), 60.0f );
 
@@ -330,10 +321,11 @@ void AppImplMswRendererDx::swapBuffers() const
 
 	HRESULT hr;
 #if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
-	if( mVsyncEnable )
-		hr = mSwapChain->Present1( 1, 0, &parameters );
+	hr = mSwapChain->Present(mVsyncEnable);
+	/*( mVsyncEnable )
+		hr = mSwapChain->Present(Present1( 1, 0, &parameters );
 	else
-		hr = mSwapChain->Present1( 0, 0, &parameters );
+		hr = mSwapChain->Present1( 0, 0, &parameters );*/
 #else
 	if( mVsyncEnable )
 		hr = mSwapChain->Present( 1, 0 );
@@ -344,14 +336,14 @@ void AppImplMswRendererDx::swapBuffers() const
 	if(hr == DXGI_ERROR_DEVICE_REMOVED)
 		const_cast<AppImplMswRendererDx*>(this)->handleLostDevice();
 #if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
-	mDevice->GetContext()->DiscardView( mMainFramebuffer );
-	mDevice->GetContext()->DiscardView( mDepthStencilView );
+	mDevice->GetContext()->DiscardView( mSwapChain->GetRenderTarget()->GetRTV());
+	mDevice->GetContext()->DiscardView( mDepthStencil->GetDSV());
 #endif
 }
 
 void AppImplMswRendererDx::makeCurrentContext()
 {
-	mDevice->GetContext()->OMSetRenderTargets(1, &mMainFramebuffer, mDepthStencilView);
+	BindPrimaryBuffer();
 }
 
 void AppImplMswRendererDx::setViewport(int x, int y, int width, int height) const
@@ -646,149 +638,39 @@ bool AppImplMswRendererDx::createFramebufferResources()
 	HRESULT hr;
 	if(mSwapChain)
 	{
-		if(mSwapChain->ResizeBuffers(2, static_cast<UINT>(width), static_cast<UINT>(height), DXGI_FORMAT_R8G8B8A8_UNORM, 0) != S_OK)
+		if (!mSwapChain->Resize(2,width,height,DXGI_FORMAT_R8G8B8A8_UNORM))
 			return false;
 	}
 	else
 	{
-		IDXGIDevice1 *dxgiDevice;
-		hr = mDevice->GetDevice()->QueryInterface(__uuidof(IDXGIDevice1), (void**)&dxgiDevice);
-		if( hr != S_OK )
-			return false;
-		IDXGIAdapter *dxgiAdapter;
-		hr = dxgiDevice->GetAdapter(&dxgiAdapter);
-		if( hr != S_OK )
-			return false;
-		
- #if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
-		IDXGIFactory2 *dxgiFactory;
-		hr = dxgiAdapter->GetParent(__uuidof(IDXGIFactory2), (void**)&dxgiFactory);
-		if( hr != S_OK )
-			return false;
-
-		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {0};
-		swapChainDesc.Width = static_cast<UINT>(width); // Match the size of the window.
-		swapChainDesc.Height = static_cast<UINT>(height);
-		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // This is the most common swap chain format.
-		swapChainDesc.Stereo = false;
-		swapChainDesc.SampleDesc.Count = 1; // Don't use multi-sampling.
-		swapChainDesc.SampleDesc.Quality = 0;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.BufferCount = 2; // Use double-buffering to minimize latency.
-
-  #if defined( CINDER_WINRT )
-		swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
-  #else
-		// Check to see if the OS is Windows 8 or later. If it's not, then that means
-		// compiling/running on Windows 7 SP1. We use this to set the appropriate
-		// flags for Windows7 SP 1's DirectX 11.1 support.
-		//
-		OSVERSIONINFOEX osver;
-		ZeroMemory( &osver, sizeof(OSVERSIONINFOEX) );
-		osver.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-		GetVersionEx( (OSVERSIONINFO*)&osver );
-		bool isWin8 = (osver.dwMajorVersion >= 6) && (osver.dwMinorVersion >= 2);
-
-		if( isWin8 ) {
-			swapChainDesc.Scaling = DXGI_SCALING_NONE;			
-		}
-		else {
-			//
-			// Win7 doesn't support DXGI_SCALING_NONE:
-			//    http://msdn.microsoft.com/en-us/library/windows/desktop/hh404557(v=vs.85).aspx
-			//
-			swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
-		}
-  #endif
-
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL; // All Windows Store apps must use this SwapEffect.
-		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-  #if defined( CINDER_WINRT )
-		hr = dxgiFactory->CreateSwapChainForCoreWindow( mDevice->GetDevice(), reinterpret_cast<IUnknown*>(mWnd.Get()), &swapChainDesc, nullptr, &mSwapChain );
-  #else 
-		hr = dxgiFactory->CreateSwapChainForHwnd( mDevice->GetDevice(), mWnd, &swapChainDesc, NULL, NULL, &mSwapChain );
-  #endif
-#else
-		IDXGIFactory1 *dxgiFactory;
-		hr = dxgiAdapter->GetParent(__uuidof(IDXGIFactory1), (void**)&dxgiFactory);
-		if( hr != S_OK )
-			return false;
-		
-		DXGI_SWAP_CHAIN_DESC swapChainDesc = {0};
-		swapChainDesc.BufferDesc.Width = static_cast<UINT>(width); // Match the size of the window.
-		swapChainDesc.BufferDesc.Height = static_cast<UINT>(height);
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // This is the most common swap chain format.
-		swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-		swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-		swapChainDesc.SampleDesc.Count = 1; // Don't use multi-sampling.
-		swapChainDesc.SampleDesc.Quality = 0;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.BufferCount = 2; // Use double-buffering to minimize latency.
-		swapChainDesc.OutputWindow = mWnd;
-		swapChainDesc.Windowed = TRUE;
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-		swapChainDesc.Flags = 0;
-		
-		hr = dxgiFactory->CreateSwapChain( mDevice->GetDevice(), &swapChainDesc, &mSwapChain );
-#endif
-		if( hr != S_OK )
-			return false;
-		hr = dxgiDevice->SetMaximumFrameLatency(1);
-		if( hr != S_OK )
-			return false;
-
-		dxgiFactory->Release();
-		dxgiAdapter->Release();
-		dxgiDevice->Release();
+		mSwapChain = new SwapChain(mDevice,reinterpret_cast<IUnknown*>(mWnd.Get()),width,height);
 	}
 
-	// create the render target framebuffer thing
-	ID3D11Texture2D *framebuffer = NULL;
-	hr = mSwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), (void**)&framebuffer );
-	if(hr != S_OK)
+	try
+	{
+		mDepthStencil = new DepthStencil(mDevice,static_cast<UINT>(width),static_cast<UINT>(height));
+	}
+	catch (DxException exc)
+	{
 		return false;
+	}
 
-	hr = mDevice->GetDevice()->CreateRenderTargetView( framebuffer, NULL, &mMainFramebuffer );
-	framebuffer->Release();
-	if( hr != S_OK )
-		return false;
-
-	// create a depth stencil
-	D3D11_TEXTURE2D_DESC descDepth;
-    ZeroMemory( &descDepth, sizeof(descDepth) );
-    descDepth.Width = static_cast<UINT>(width);
-    descDepth.Height = static_cast<UINT>(height);
-    descDepth.MipLevels = 1;
-    descDepth.ArraySize = 1;
-    descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    descDepth.SampleDesc.Count = 1;
-    descDepth.SampleDesc.Quality = 0;
-    descDepth.Usage = D3D11_USAGE_DEFAULT;
-    descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    descDepth.CPUAccessFlags = 0;
-    descDepth.MiscFlags = 0;
-	hr = mDevice->GetDevice()->CreateTexture2D( &descDepth, NULL, &mDepthStencilTexture );
-	if( hr != S_OK )
-		return false;
-
-    D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-    ZeroMemory( &descDSV, sizeof(descDSV) );
-    descDSV.Format = descDepth.Format;
-    descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    descDSV.Texture2D.MipSlice = 0;
-	hr = mDevice->GetDevice()->CreateDepthStencilView( mDepthStencilTexture, &descDSV, &mDepthStencilView );
-	if( hr != S_OK )
-		return false;
-
-	mDevice->GetContext()->OMSetRenderTargets( 1, &mMainFramebuffer, mDepthStencilView );
-
-	// setup the viewport
-	setViewport(0, 0, static_cast<UINT>(width), static_cast<UINT>(height));
+	BindPrimaryBuffer();
 
 	return true;
+}
+
+void AppImplMswRendererDx::BindPrimaryBuffer()
+{
+	ID3D11RenderTargetView* rtv = mSwapChain->GetRenderTarget()->GetRTV();
+	mDevice->GetContext()->OMSetRenderTargets( 1, &rtv,mDepthStencil->GetDSV());
+
+	//Could also use resource
+	float width, height;
+	getPlatformWindowDimensions(mWnd, &width, &height);
+
+	//Make sure we also set viewport again, since previous render targets might be of different size
+	setViewport(0, 0, static_cast<UINT>(width), static_cast<UINT>(height));
 }
 
 bool AppImplMswRendererDx::createShadersFeatureLevel_9_1()
@@ -1130,7 +1012,7 @@ bool AppImplMswRendererDx::createShadersFeatureLevel_11_1()
 
 void AppImplMswRendererDx::handleLostDevice()
 {
-	mSwapChain->Release();
+	delete mSwapChain;
 	mSwapChain = NULL;
 
 	createDeviceResources();

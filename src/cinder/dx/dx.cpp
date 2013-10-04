@@ -214,9 +214,9 @@ void clear( const ColorA &color, bool clearDepthBuffer )
 	//else
 	{
 		auto dx = getDxRenderer();
-		dx->GetContext()->ClearRenderTargetView(dx->mMainFramebuffer, &color.r);
+		dx->GetPrimarySwapChain()->GetRenderTarget()->Clear(color);
 		if(clearDepthBuffer)
-			dx->GetContext()->ClearDepthStencilView(dx->mDepthStencilView, D3D11_CLEAR_DEPTH, 1, 0);
+			dx->GetDepthStencil()->Clear(true,false);
 	}
 }
 

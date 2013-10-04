@@ -21,9 +21,13 @@ namespace cinder { namespace dx {
 #if USE_D3D11_1
 	typedef ID3D11Device1 IDXDevice;
 	typedef ID3D11DeviceContext1 IDXContext;
+	typedef IDXGIFactory2 IDXFactory;
+	typedef IDXGIAdapter2 IDXAdapter;
 #else
 	typedef ID3D11Device IDXDevice;
 	typedef ID3D11DeviceContext IDXContext;
+	typedef IDXGIFactory IDXFactory;
+	typedef IDXGIAdapter IDXAdapter;
 #endif
 		
 

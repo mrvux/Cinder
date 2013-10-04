@@ -358,6 +358,21 @@
     <ClInclude Include="..\include\cinder\dx\VertexElements.h">
       <Filter>Header Files\dx</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\RenderTarget2.h">
+      <Filter>Header Files\dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\RenderTargetBase.h">
+      <Filter>Header Files\dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\Texture2.h">
+      <Filter>Header Files\dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\DepthStencil.h">
+      <Filter>Header Files\dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\SwapChain.h">
+      <Filter>Header Files\dx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cinder\app\App.cpp">
@@ -838,6 +853,21 @@
       <Filter>Source Files\dx</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cinder\dx\VertexElements.cpp">
+      <Filter>Source Files\dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\RenderTarget2.cpp">
+      <Filter>Source Files\dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\RenderTargetBase.cpp">
+      <Filter>Source Files\dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\Texture2.cpp">
+      <Filter>Source Files\dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\DepthStencil.cpp">
+      <Filter>Source Files\dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\SwapChain.cpp">
       <Filter>Source Files\dx</Filter>
     </ClCompile>
   </ItemGroup>

@@ -135,9 +135,7 @@ Surface	RendererDx::copyWindowSurface( const Area &area )
 	box.top = area.y1;
 	box.bottom = area.y2;
 
-	ID3D11Texture2D *framebuffer;
-	mImpl->mSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&framebuffer);
-
+	ID3D11Texture2D *framebuffer = mImpl->GetPrimarySwapChain()->GetResource()->GetTexture();
 	mImpl->GetContext()->CopySubresourceRegion(texture, 0, 0, 0, 0, framebuffer, 0, &box);
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;

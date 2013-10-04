@@ -558,8 +558,7 @@ void RenderTarget::bindFramebuffer()
 
 void RenderTarget::unbindFramebuffer()
 {
-	getDxRenderer()->GetContext()->OMSetRenderTargets( 1, &getDxRenderer()->mMainFramebuffer, getDxRenderer()->mDepthStencilView );
-	//GL_SUFFIX(glBindFramebuffer)( GL_SUFFIX(GL_FRAMEBUFFER_), 0 );
+	getDxRenderer()->BindPrimaryBuffer();
 }
 
 bool RenderTarget::checkStatus( RenderTargetExceptionInvalidSpecification *resultExc )

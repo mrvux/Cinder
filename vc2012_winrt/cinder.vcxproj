@@ -279,6 +279,7 @@
     <ClInclude Include="..\include\cinder\dx\BlendStates.h" />
     <ClInclude Include="..\include\cinder\dx\DDS.h" />
     <ClInclude Include="..\include\cinder\dx\DDSTextureLoader.h" />
+    <ClInclude Include="..\include\cinder\dx\DepthStencil.h" />
     <ClInclude Include="..\include\cinder\dx\DepthStencilStates.h" />
     <ClInclude Include="..\include\cinder\dx\dx.h" />
     <ClInclude Include="..\include\cinder\dx\dx11.h" />
@@ -292,6 +293,10 @@
     <ClInclude Include="..\include\cinder\dx\IndexBuffer.h" />
     <ClInclude Include="..\include\cinder\dx\PlatformHelpers.h" />
     <ClInclude Include="..\include\cinder\dx\RasterizerStates.h" />
+    <ClInclude Include="..\include\cinder\dx\RenderTarget2.h" />
+    <ClInclude Include="..\include\cinder\dx\RenderTargetBase.h" />
+    <ClInclude Include="..\include\cinder\dx\SwapChain.h" />
+    <ClInclude Include="..\include\cinder\dx\Texture2.h" />
     <ClInclude Include="..\include\cinder\dx\VertexBuffer.h" />
     <ClInclude Include="..\include\cinder\dx\VertexElements.h" />
     <ClInclude Include="..\include\cinder\Exception.h" />
@@ -385,6 +390,7 @@
     <ClCompile Include="..\src\cinder\DataTarget.cpp" />
     <ClCompile Include="..\src\cinder\Display.cpp" />
     <ClCompile Include="..\src\cinder\dx\BlendStates.cpp" />
+    <ClCompile Include="..\src\cinder\dx\DepthStencil.cpp" />
     <ClCompile Include="..\src\cinder\dx\DepthStencilStates.cpp" />
     <ClCompile Include="..\src\cinder\dx\DxDevice.cpp" />
     <ClCompile Include="..\src\cinder\dx\DxRenderTarget.cpp" />
@@ -394,6 +400,10 @@
     <ClCompile Include="..\src\cinder\dx\HlslProg.cpp" />
     <ClCompile Include="..\src\cinder\dx\IndexBuffer.cpp" />
     <ClCompile Include="..\src\cinder\dx\RasterizerStates.cpp" />
+    <ClCompile Include="..\src\cinder\dx\RenderTarget2.cpp" />
+    <ClCompile Include="..\src\cinder\dx\RenderTargetBase.cpp" />
+    <ClCompile Include="..\src\cinder\dx\SwapChain.cpp" />
+    <ClCompile Include="..\src\cinder\dx\Texture2.cpp" />
     <ClCompile Include="..\src\cinder\dx\VertexBuffer.cpp" />
     <ClCompile Include="..\src\cinder\dx\VertexElements.cpp" />
     <ClCompile Include="..\src\cinder\Font.cpp" />

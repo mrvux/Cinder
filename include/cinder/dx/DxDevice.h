@@ -16,6 +16,7 @@ public:
 
 	inline IDXDevice* GetDevice() { return mObj->mDevice; }
 	inline IDXContext* GetContext() { return mObj->mContext; }
+	inline IDXFactory* GetFactory() { return mObj->mFactory; }
 
 	inline bool IsFeatureLevel11() { return mFeatureLevel >= D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_11_0; }
 	inline bool HasBufferSupport() { return mBufferSupport; }
@@ -26,8 +27,8 @@ private:
 	{
 		Obj();
 		~Obj();
-		IDXGIFactory1* mFactory;
-		IDXGIAdapter1* mAdapter;
+		IDXFactory* mFactory;
+		IDXAdapter* mAdapter;
 		IDXDevice* mDevice;
 		IDXContext* mContext;
 

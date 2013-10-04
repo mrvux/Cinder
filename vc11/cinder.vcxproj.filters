@@ -504,6 +504,9 @@
     <ClCompile Include="..\src\cinder\dx\RasterizerStates.cpp">
       <Filter>Source Files\dx</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\VertexElements.cpp">
+      <Filter>Source Files\dx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\AntTweakBar\AntPerfTimer.h">
@@ -1044,6 +1047,9 @@
       <Filter>Header Files\dx</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cinder\dx\RasterizerStates.h">
+      <Filter>Header Files\dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\VertexElements.h">
       <Filter>Header Files\dx</Filter>
     </ClInclude>
   </ItemGroup>
