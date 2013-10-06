@@ -1,6 +1,11 @@
-#include "cinder/Cinder.h"
-#include <d3d11.h>
+#pragma once
 
+#include "cinder/Cinder.h"
+
+#define INITGUID 
+#include <d3d11.h>
+#include <d3dcompiler.h>
+#include "msw/effects11/d3dx11effect.h"
 
 #if defined( CINDER_WINRT )
 	#define USE_D3D11_1 1 //Don't change here
@@ -37,7 +42,7 @@ class DxException : public Exception  {
 
 	DxException( const std::string &message ) throw() : Exception()
 	{
-		strncpy( mMessage, message.c_str(), 255 );
+		strncpy_s( mMessage, message.c_str(), 255 );
 	}
 	virtual const char * what() const throw() { return mMessage; }	
   private:	

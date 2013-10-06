@@ -140,7 +140,7 @@
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;ole32.lib;windowscodecs.lib;oleaut32.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;ole32.lib;windowscodecs.lib;oleaut32.lib;dwrite.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4264 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
@@ -276,13 +276,11 @@
     <ClInclude Include="..\include\cinder\DataSource.h" />
     <ClInclude Include="..\include\cinder\DataTarget.h" />
     <ClInclude Include="..\include\cinder\Display.h" />
-    <ClInclude Include="..\include\cinder\dx\BlendStates.h" />
     <ClInclude Include="..\include\cinder\dx\DDS.h" />
     <ClInclude Include="..\include\cinder\dx\DDSTextureLoader.h" />
-    <ClInclude Include="..\include\cinder\dx\DepthStencil.h" />
-    <ClInclude Include="..\include\cinder\dx\DepthStencilStates.h" />
     <ClInclude Include="..\include\cinder\dx\dx.h" />
     <ClInclude Include="..\include\cinder\dx\dx11.h" />
+    <ClInclude Include="..\include\cinder\dx\DxAPI.h" />
     <ClInclude Include="..\include\cinder\dx\DxDevice.h" />
     <ClInclude Include="..\include\cinder\dx\DxLight.h" />
     <ClInclude Include="..\include\cinder\dx\DxRenderTarget.h" />
@@ -290,15 +288,33 @@
     <ClInclude Include="..\include\cinder\dx\FontEnumerator.h" />
     <ClInclude Include="..\include\cinder\dx\gldx.h" />
     <ClInclude Include="..\include\cinder\dx\HlslProg.h" />
-    <ClInclude Include="..\include\cinder\dx\IndexBuffer.h" />
     <ClInclude Include="..\include\cinder\dx\PlatformHelpers.h" />
-    <ClInclude Include="..\include\cinder\dx\RasterizerStates.h" />
-    <ClInclude Include="..\include\cinder\dx\RenderTarget2.h" />
-    <ClInclude Include="..\include\cinder\dx\RenderTargetBase.h" />
-    <ClInclude Include="..\include\cinder\dx\SwapChain.h" />
-    <ClInclude Include="..\include\cinder\dx\Texture2.h" />
-    <ClInclude Include="..\include\cinder\dx\VertexBuffer.h" />
-    <ClInclude Include="..\include\cinder\dx\VertexElements.h" />
+    <ClInclude Include="..\include\cinder\dx\rendering\IndexedGeometry.h" />
+    <ClInclude Include="..\include\cinder\dx\rendering\PrimitiveManager.h" />
+    <ClInclude Include="..\include\cinder\dx\rendering\RenderTargetStack.h" />
+    <ClInclude Include="..\include\cinder\dx\rendering\ResourcePool.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\ByteAddressBuffer.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\DepthStencil.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\DepthStencilArray.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\DepthStencilCube.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\Effect.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\IndexBuffer.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\RenderTarget2.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\RenderTarget2Array.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\RenderTarget3.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\RenderTargetBase.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\RenderTargetCube.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\StructuredBuffer.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\SwapChain.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\Texture1.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\Texture2.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\Texture3.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\VertexBuffer.h" />
+    <ClInclude Include="..\include\cinder\dx\states\BlendStates.h" />
+    <ClInclude Include="..\include\cinder\dx\states\BlendStatesLogical.h" />
+    <ClInclude Include="..\include\cinder\dx\states\DepthStencilStates.h" />
+    <ClInclude Include="..\include\cinder\dx\states\RasterizerStates.h" />
+    <ClInclude Include="..\include\cinder\dx\utils\VertexElements.h" />
     <ClInclude Include="..\include\cinder\Exception.h" />
     <ClInclude Include="..\include\cinder\Filesystem.h" />
     <ClInclude Include="..\include\cinder\ImageIo.h" />
@@ -389,23 +405,38 @@
     <ClCompile Include="..\src\cinder\DataSource.cpp" />
     <ClCompile Include="..\src\cinder\DataTarget.cpp" />
     <ClCompile Include="..\src\cinder\Display.cpp" />
-    <ClCompile Include="..\src\cinder\dx\BlendStates.cpp" />
-    <ClCompile Include="..\src\cinder\dx\DepthStencil.cpp" />
-    <ClCompile Include="..\src\cinder\dx\DepthStencilStates.cpp" />
     <ClCompile Include="..\src\cinder\dx\DxDevice.cpp" />
     <ClCompile Include="..\src\cinder\dx\DxRenderTarget.cpp" />
     <ClCompile Include="..\src\cinder\dx\DxTextureFont.cpp" />
     <ClCompile Include="..\src\cinder\dx\DxVbo.cpp" />
     <ClCompile Include="..\src\cinder\dx\FontEnumerator.cpp" />
     <ClCompile Include="..\src\cinder\dx\HlslProg.cpp" />
-    <ClCompile Include="..\src\cinder\dx\IndexBuffer.cpp" />
-    <ClCompile Include="..\src\cinder\dx\RasterizerStates.cpp" />
-    <ClCompile Include="..\src\cinder\dx\RenderTarget2.cpp" />
-    <ClCompile Include="..\src\cinder\dx\RenderTargetBase.cpp" />
-    <ClCompile Include="..\src\cinder\dx\SwapChain.cpp" />
-    <ClCompile Include="..\src\cinder\dx\Texture2.cpp" />
-    <ClCompile Include="..\src\cinder\dx\VertexBuffer.cpp" />
-    <ClCompile Include="..\src\cinder\dx\VertexElements.cpp" />
+    <ClCompile Include="..\src\cinder\dx\rendering\IndexedGeometry.cpp" />
+    <ClCompile Include="..\src\cinder\dx\rendering\PrimitiveManager.cpp" />
+    <ClCompile Include="..\src\cinder\dx\rendering\RenderTargetStack.cpp" />
+    <ClCompile Include="..\src\cinder\dx\rendering\ResourcePool.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\ByteAddressBuffer.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\DepthStencil.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\DepthStencilArray.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\DepthStencilCube.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\Effect.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\IndexBuffer.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\RenderTarget2.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\RenderTarget2Array.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\RenderTarget3.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\RenderTargetBase.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\RenderTargetCube.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\StructuredBuffer.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\SwapChain.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\Texture1.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\Texture2.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\Texture3.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\VertexBuffer.cpp" />
+    <ClCompile Include="..\src\cinder\dx\states\BlendStates.cpp" />
+    <ClCompile Include="..\src\cinder\dx\states\BlendStatesLogical.cpp" />
+    <ClCompile Include="..\src\cinder\dx\states\DepthStencilStates.cpp" />
+    <ClCompile Include="..\src\cinder\dx\states\RasterizerStates.cpp" />
+    <ClCompile Include="..\src\cinder\dx\utils\VertexElements.cpp" />
     <ClCompile Include="..\src\cinder\Font.cpp" />
     <ClCompile Include="..\src\cinder\ImageIo.cpp" />
     <ClCompile Include="..\src\cinder\ImageSourceFileWic.cpp" />

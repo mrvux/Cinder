@@ -71,6 +71,30 @@
     <Filter Include="Source Files\AntTweakBar">
       <UniqueIdentifier>{36b2c259-6e9a-48fb-9480-9369b069a7b8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\dx\resources">
+      <UniqueIdentifier>{09e73f07-b1d2-494d-b76f-51e0b1ce444b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\dx\rendering">
+      <UniqueIdentifier>{6297d992-98f7-454d-a39e-1775fb20ca71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\dx\utils">
+      <UniqueIdentifier>{7c313a25-9b6f-4c3f-8e99-3d585bd015cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\dx\resources">
+      <UniqueIdentifier>{38fa4c4c-0035-4db1-a2b1-c8affd529f0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\dx\rendering">
+      <UniqueIdentifier>{c7690007-f67a-4cb4-8b34-02ba89804705}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\dx\utils">
+      <UniqueIdentifier>{526b449a-69b6-4055-92d8-3dce2e078601}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\dx\states">
+      <UniqueIdentifier>{1a147cc5-51c4-46ee-ab44-358e0478d57b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\dx\states">
+      <UniqueIdentifier>{be3aae06-f160-44e0-9c93-0ed24094ce1a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\cinder\app\Renderer.h">
@@ -340,37 +364,85 @@
     <ClInclude Include="..\include\cinder\dx\DxDevice.h">
       <Filter>Header Files\dx</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\dx\BlendStates.h">
-      <Filter>Header Files\dx</Filter>
+    <ClInclude Include="..\include\cinder\dx\utils\VertexElements.h">
+      <Filter>Header Files\dx\utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\dx\DepthStencilStates.h">
-      <Filter>Header Files\dx</Filter>
+    <ClInclude Include="..\include\cinder\dx\states\BlendStates.h">
+      <Filter>Header Files\dx\states</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\dx\RasterizerStates.h">
-      <Filter>Header Files\dx</Filter>
+    <ClInclude Include="..\include\cinder\dx\states\BlendStatesLogical.h">
+      <Filter>Header Files\dx\states</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\dx\IndexBuffer.h">
-      <Filter>Header Files\dx</Filter>
+    <ClInclude Include="..\include\cinder\dx\states\DepthStencilStates.h">
+      <Filter>Header Files\dx\states</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\dx\VertexBuffer.h">
-      <Filter>Header Files\dx</Filter>
+    <ClInclude Include="..\include\cinder\dx\states\RasterizerStates.h">
+      <Filter>Header Files\dx\states</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\dx\VertexElements.h">
-      <Filter>Header Files\dx</Filter>
+    <ClInclude Include="..\include\cinder\dx\rendering\PrimitiveManager.h">
+      <Filter>Header Files\dx\rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\dx\RenderTarget2.h">
-      <Filter>Header Files\dx</Filter>
+    <ClInclude Include="..\include\cinder\dx\rendering\RenderTargetStack.h">
+      <Filter>Header Files\dx\rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\dx\RenderTargetBase.h">
-      <Filter>Header Files\dx</Filter>
+    <ClInclude Include="..\include\cinder\dx\rendering\ResourcePool.h">
+      <Filter>Header Files\dx\rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\dx\Texture2.h">
-      <Filter>Header Files\dx</Filter>
+    <ClInclude Include="..\include\cinder\dx\resources\ByteAddressBuffer.h">
+      <Filter>Header Files\dx\resources</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\dx\DepthStencil.h">
-      <Filter>Header Files\dx</Filter>
+    <ClInclude Include="..\include\cinder\dx\resources\DepthStencil.h">
+      <Filter>Header Files\dx\resources</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\dx\SwapChain.h">
+    <ClInclude Include="..\include\cinder\dx\resources\DepthStencilArray.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\DepthStencilCube.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\Effect.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\IndexBuffer.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\RenderTarget2.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\RenderTarget2Array.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\RenderTarget3.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\RenderTargetBase.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\RenderTargetCube.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\StructuredBuffer.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\SwapChain.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\Texture1.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\Texture2.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\Texture3.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\resources\VertexBuffer.h">
+      <Filter>Header Files\dx\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\rendering\IndexedGeometry.h">
+      <Filter>Header Files\dx\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\DxAPI.h">
       <Filter>Header Files\dx</Filter>
     </ClInclude>
   </ItemGroup>
@@ -837,38 +909,83 @@
     <ClCompile Include="..\src\cinder\dx\DxDevice.cpp">
       <Filter>Source Files\dx</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\BlendStates.cpp">
-      <Filter>Source Files\dx</Filter>
+    <ClCompile Include="..\src\cinder\dx\utils\VertexElements.cpp">
+      <Filter>Source Files\dx\utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\DepthStencilStates.cpp">
-      <Filter>Source Files\dx</Filter>
+    <ClCompile Include="..\src\cinder\dx\states\BlendStates.cpp">
+      <Filter>Source Files\dx\states</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\RasterizerStates.cpp">
-      <Filter>Source Files\dx</Filter>
+    <ClCompile Include="..\src\cinder\dx\states\BlendStatesLogical.cpp">
+      <Filter>Source Files\dx\states</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\IndexBuffer.cpp">
-      <Filter>Source Files\dx</Filter>
+    <ClCompile Include="..\src\cinder\dx\states\DepthStencilStates.cpp">
+      <Filter>Source Files\dx\states</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\VertexBuffer.cpp">
-      <Filter>Source Files\dx</Filter>
+    <ClCompile Include="..\src\cinder\dx\states\RasterizerStates.cpp">
+      <Filter>Source Files\dx\states</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\VertexElements.cpp">
-      <Filter>Source Files\dx</Filter>
+    <ClCompile Include="..\src\cinder\dx\rendering\PrimitiveManager.cpp">
+      <Filter>Source Files\dx\rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\RenderTarget2.cpp">
-      <Filter>Source Files\dx</Filter>
+    <ClCompile Include="..\src\cinder\dx\rendering\RenderTargetStack.cpp">
+      <Filter>Source Files\dx\rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\RenderTargetBase.cpp">
-      <Filter>Source Files\dx</Filter>
+    <ClCompile Include="..\src\cinder\dx\rendering\ResourcePool.cpp">
+      <Filter>Source Files\dx\rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\Texture2.cpp">
-      <Filter>Source Files\dx</Filter>
+    <ClCompile Include="..\src\cinder\dx\resources\ByteAddressBuffer.cpp">
+      <Filter>Source Files\dx\resources</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\DepthStencil.cpp">
-      <Filter>Source Files\dx</Filter>
+    <ClCompile Include="..\src\cinder\dx\resources\DepthStencil.cpp">
+      <Filter>Source Files\dx\resources</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\SwapChain.cpp">
-      <Filter>Source Files\dx</Filter>
+    <ClCompile Include="..\src\cinder\dx\resources\DepthStencilArray.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\DepthStencilCube.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\Effect.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\IndexBuffer.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\RenderTarget2.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\RenderTarget2Array.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\RenderTarget3.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\RenderTargetBase.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\RenderTargetCube.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\StructuredBuffer.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\SwapChain.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\Texture1.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\Texture2.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\Texture3.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\resources\VertexBuffer.cpp">
+      <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\rendering\IndexedGeometry.cpp">
+      <Filter>Source Files\dx\rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

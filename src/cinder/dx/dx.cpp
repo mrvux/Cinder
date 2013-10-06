@@ -201,43 +201,16 @@ static void applyDxFixedPipeline(const FixedVertex *verts, UINT elements, ID3D11
 
 void clear( const ColorA &color, bool clearDepthBuffer )
 {
-	//if(app::AppBasic::get()->getRenderer()->GetRendererType() == app::Renderer::RENDERER_GL)
-	//{
-	//	glClearColor( color.r, color.g, color.b, color.a );
-	//	if( clearDepthBuffer ) {
-	//		glDepthMask( GL_TRUE );
-	//		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	//	}
-	//	else
-	//		glClear( GL_COLOR_BUFFER_BIT );
-	//}
-	//else
-	{
-		auto dx = getDxRenderer();
-		dx->GetPrimarySwapChain()->GetRenderTarget()->Clear(color);
-		if(clearDepthBuffer)
-			dx->GetDepthStencil()->Clear(true,false);
-	}
+	auto dx = getDxRenderer();
+	dx->GetPrimarySwapChain()->GetRenderTarget()->Clear(color);
+	if(clearDepthBuffer)
+		dx->GetDepthStencil()->Clear(true,false);
+	
 }
 
 void enableVerticalSync( bool enable )
 {
-//	if(app::App::get()->getRenderer()->GetRendererType() == app::Renderer::RENDERER_GL)
-//	{
-//		GLint sync = ( enable ) ? 1 : 0;
-//#if defined( CINDER_MAC )
-//		::CGLSetParameter( ::CGLGetCurrentContext(), kCGLCPSwapInterval, &sync );
-//#elif defined( CINDER_MSW )
-//		if( WGL_EXT_swap_control )
-//			::wglSwapIntervalEXT( sync );
-//	}
-//	else
-	{
-		getDxRenderer()->enableVsync(enable);
-	}
-//#else
-	//}
-//#endif
+	getDxRenderer()->enableVsync(enable);
 }
 
 bool isVerticalSyncEnabled()

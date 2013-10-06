@@ -33,8 +33,8 @@
 #include "cinder/app/AppImplMswRenderer.h"
 #include "cinder/app/RendererDx.h"
 #include "cinder/dx/DxDevice.h"
-#include "cinder/dx/SwapChain.h"
-#include "cinder/dx/DepthStencil.h"
+#include "cinder/dx/resources/SwapChain.h"
+#include "cinder/dx/resources/DepthStencil.h"
 
 #include "cinder/dx/dx.h"
 #include <d3dcompiler.h>
@@ -178,6 +178,8 @@ class AppImplMswRendererDx : public AppImplMswRenderer {
 	inline ci::dx::IDXContext* GetContext() { return mDevice->GetContext(); }
 	inline ci::dx::IDXDevice* GetDevice() { return mDevice->GetDevice(); }
 	inline D3D_FEATURE_LEVEL GetFeatureLevel() { return mDevice->GetFeatureLevel(); }
+
+	inline ci::dx::DxDevice* GetDxDevice() { return mDevice; }
 
 	void FlushContext();
 	void BindPrimaryBuffer();
