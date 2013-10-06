@@ -12,6 +12,12 @@ public:
 	inline ID3D11RasterizerState* BackCull() { return mBackCull; }
 	inline ID3D11RasterizerState* FrontCull() { return mFrontCull; }
 	inline ID3D11RasterizerState* NoCull() { return mNoCull; }
+
+	inline void SetWireframe() { mDevice->GetContext()->RSSetState(mWireFrame); }
+	inline void SetBackCull() { mDevice->GetContext()->RSSetState(mBackCull);}
+	inline void SetFrontCull() { mDevice->GetContext()->RSSetState(mFrontCull);}
+	inline void SetNoCull() { mDevice->GetContext()->RSSetState(mNoCull);}
+
 private:
 	DxDevice* mDevice;
 
