@@ -134,7 +134,7 @@ IndexedGeometry* GeometricPrimitives::Box(DxDevice* device)
 
 IndexedGeometry* GeometricPrimitives::Segment(DxDevice* device,float phase, float cycles, float inner, UINT res, bool flat)
 {
-	IndexedGeometry* geom = new IndexedGeometry(context);
+	IndexedGeometry* geom = new IndexedGeometry(device);
 
 	D3D11_INPUT_ELEMENT_DESC poselem = VertexElements::Position4();
 	D3D11_INPUT_ELEMENT_DESC uvelem = VertexElements::TexCoord2();
@@ -209,22 +209,18 @@ IndexedGeometry* GeometricPrimitives::Segment(DxDevice* device,float phase, floa
 	elems.clear();
 	elems.push_back(VertexElements::Position4());
 
-	VertexBuffer* vb = new VertexBuffer(context,vcount,4*sizeof(float),vpos,elems);
+	VertexBuffer* vb = VertexBuffer::CreateImmutable(device,vpos,vcount,4*sizeof(float),elems);
 	geom->AddVertexBuffer(vb);
 
 	elems.clear();
 	elems.push_back(VertexElements::TexCoord2());
 	
-	VertexBuffer* vbuv = new VertexBuffer(context,vcount,2*sizeof(float),uvs,elems);
+	VertexBuffer* vbuv = VertexBuffer::CreateImmutable(device,uvs,vcount,2*sizeof(float),elems);
 	geom->AddVertexBuffer(vbuv);
 
 	 
-	IndexBuffer* ib = new IndexBuffer(context,icount,indices);
+	IndexBuffer* ib = IndexBuffer::CreateImmutable(device,indices,icount);
 	geom->SetIndexBuffer(ib);
-
-	/*delete indices;
-	delete vpos;
-	delete uvs;*/
 
 	return geom;
 }
