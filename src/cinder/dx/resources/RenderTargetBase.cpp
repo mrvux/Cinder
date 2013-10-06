@@ -2,7 +2,7 @@
 
 namespace cinder { namespace dx {
 
-	RenderTargetBase::RenderTargetBase(DxDevice* device)
+RenderTargetBase::RenderTargetBase(DxDevice* device)
 {
 	mDevice = device;
 }

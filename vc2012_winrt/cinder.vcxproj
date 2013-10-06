@@ -296,6 +296,7 @@
     <ClInclude Include="..\include\cinder\dx\resources\ByteAddressBuffer.h" />
     <ClInclude Include="..\include\cinder\dx\resources\DepthStencil.h" />
     <ClInclude Include="..\include\cinder\dx\resources\DepthStencilArray.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\DepthStencilBase.h" />
     <ClInclude Include="..\include\cinder\dx\resources\DepthStencilCube.h" />
     <ClInclude Include="..\include\cinder\dx\resources\Effect.h" />
     <ClInclude Include="..\include\cinder\dx\resources\IndexBuffer.h" />
@@ -420,6 +421,7 @@
     <ClCompile Include="..\src\cinder\dx\resources\ByteAddressBuffer.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencil.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencilArray.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\DepthStencilBase.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencilCube.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\Effect.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\IndexBuffer.cpp" />

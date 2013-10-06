@@ -1,11 +1,8 @@
 #pragma once
 
-#include "cinder/Color.h"
-
 #include "cinder/dx/DxDevice.h"
 
 namespace cinder { namespace dx {
-
 
 class RenderTargetBase
 {
@@ -22,4 +19,4 @@ protected:
 	DxDevice* mDevice;
 };
 
-}}
+} }

@@ -31,7 +31,6 @@ private:
 		IDXAdapter* mAdapter;
 		IDXDevice* mDevice;
 		IDXContext* mContext;
-
 	};
 
 	std::shared_ptr<Obj> mObj;

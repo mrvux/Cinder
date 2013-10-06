@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cinder/Cinder.h"
+#include "cinder/Color.h"
 
 #define INITGUID 
 #include <d3d11.h>

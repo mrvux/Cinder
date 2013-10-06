@@ -15,7 +15,6 @@
 
 #include "resources/Effect.h"
 
-
 #include "rendering/IndexedGeometry.h"
 #include "rendering/PrimitiveManager.h"
 #include "rendering/RenderTargetStack.h"
