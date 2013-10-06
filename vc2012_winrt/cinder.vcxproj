@@ -314,6 +314,7 @@
     <ClInclude Include="..\include\cinder\dx\states\BlendStatesLogical.h" />
     <ClInclude Include="..\include\cinder\dx\states\DepthStencilStates.h" />
     <ClInclude Include="..\include\cinder\dx\states\RasterizerStates.h" />
+    <ClInclude Include="..\include\cinder\dx\utils\DepthFormats.h" />
     <ClInclude Include="..\include\cinder\dx\utils\VertexElements.h" />
     <ClInclude Include="..\include\cinder\Exception.h" />
     <ClInclude Include="..\include\cinder\Filesystem.h" />
@@ -411,6 +412,7 @@
     <ClCompile Include="..\src\cinder\dx\DxVbo.cpp" />
     <ClCompile Include="..\src\cinder\dx\FontEnumerator.cpp" />
     <ClCompile Include="..\src\cinder\dx\HlslProg.cpp" />
+    <ClCompile Include="..\src\cinder\dx\rendering\DepthFormats.cpp" />
     <ClCompile Include="..\src\cinder\dx\rendering\IndexedGeometry.cpp" />
     <ClCompile Include="..\src\cinder\dx\rendering\PrimitiveManager.cpp" />
     <ClCompile Include="..\src\cinder\dx\rendering\RenderTargetStack.cpp" />

@@ -2,12 +2,10 @@
 
 #include "cinder/Cinder.h"
 #include "cinder/dx/DxDevice.h"
+#include "cinder/dx/utils/DepthFormats.h"
 #include "Texture2.h"
 
 namespace cinder { namespace dx {
-
-DXGI_FORMAT GetDepthResourceFormat(DXGI_FORMAT depthformat);
-DXGI_FORMAT GetDepthSRVFormat(DXGI_FORMAT depthformat);
 
 class DepthStencil;
 typedef std::shared_ptr<DepthStencil> DepthStencilRef;
