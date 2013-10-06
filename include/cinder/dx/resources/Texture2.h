@@ -8,6 +8,7 @@
 
 namespace cinder { namespace dx {
 
+class Texture2;
 typedef std::shared_ptr<class Texture2>	Texture2Ref;
 
 class Texture2

@@ -8,6 +8,9 @@
 
 namespace cinder { namespace dx {
 
+class RenderTarget2;
+typedef std::shared_ptr<RenderTarget2> RenderTarget2Ref;
+
 class RenderTarget2 : public RenderTargetBase
 {
 public:

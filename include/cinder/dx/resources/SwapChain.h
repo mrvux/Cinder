@@ -8,6 +8,9 @@
 
 namespace cinder { namespace dx {
 
+class SwapChain;
+typedef std::shared_ptr<SwapChain> SwapChainRef;
+
 class SwapChain
 {
 public:

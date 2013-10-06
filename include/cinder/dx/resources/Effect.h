@@ -2,14 +2,15 @@
 
 #include <string>
 
-
 #include "cinder/DataSource.h"
 #include "cinder/FileSystem.h"
-/*#include "cinder/dx/dx11.h"*/
 #include "cinder/dx/DxDevice.h"
 
 
 namespace cinder { namespace dx {
+
+class Effect;
+typedef std::shared_ptr<Effect> EffectRef;
 
 class Effect
 {

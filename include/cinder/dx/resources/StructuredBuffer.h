@@ -11,6 +11,9 @@ typedef enum eStructuredBufferMode
 	Counter = D3D11_BUFFER_UAV_FLAG_COUNTER
 } eStructuredBufferMode;
 
+class StructuredBuffer;
+typedef std::shared_ptr<StructuredBuffer> StructuredBufferRef;
+
 class StructuredBuffer
 {
 public:

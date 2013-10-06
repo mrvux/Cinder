@@ -4,6 +4,9 @@
 
 namespace cinder { namespace dx {
 
+class IndexBuffer;
+typedef std::shared_ptr<IndexBuffer> IndexBufferRef;
+
 class IndexBuffer
 {
 public:

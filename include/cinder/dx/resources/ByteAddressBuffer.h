@@ -4,6 +4,9 @@
 
 namespace cinder { namespace dx {
 
+class ByteAddressBuffer;
+typedef std::shared_ptr<ByteAddressBuffer> ByteAddressBufferRef;
+
 class ByteAddressBuffer
 {
 public:

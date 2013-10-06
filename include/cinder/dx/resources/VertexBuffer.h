@@ -5,6 +5,9 @@
 
 namespace cinder { namespace dx {
 
+class VertexBuffer;
+typedef std::shared_ptr<class VertexBuffer>	VertexBufferRef;
+
 class VertexBuffer
 {
 public:

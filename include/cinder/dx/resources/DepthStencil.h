@@ -9,6 +9,9 @@ namespace cinder { namespace dx {
 DXGI_FORMAT GetDepthResourceFormat(DXGI_FORMAT depthformat);
 DXGI_FORMAT GetDepthSRVFormat(DXGI_FORMAT depthformat);
 
+class DepthStencil;
+typedef std::shared_ptr<DepthStencil> DepthStencilRef;
+
 class DepthStencil
 {
 public:
