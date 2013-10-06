@@ -255,11 +255,13 @@
   <ItemGroup>
     <ClInclude Include="..\include\cinder\app\App.h" />
     <ClInclude Include="..\include\cinder\app\AppBasic.h" />
+    <ClInclude Include="..\include\cinder\app\AppImplFlareRenderer.h" />
     <ClInclude Include="..\include\cinder\app\AppImplMswRenderer.h" />
     <ClInclude Include="..\include\cinder\app\AppImplMswRendererDx.h" />
     <ClInclude Include="..\include\cinder\app\AppImplWinRT.h" />
     <ClInclude Include="..\include\cinder\app\AppImplWinRTBasic.h" />
     <ClInclude Include="..\include\cinder\app\Renderer.h" />
+    <ClInclude Include="..\include\cinder\app\RendererFlare.h" />
     <ClInclude Include="..\include\cinder\app\Window.h" />
     <ClInclude Include="..\include\cinder\app\WinRTApp.h" />
     <ClInclude Include="..\include\cinder\Arcball.h" />
@@ -381,11 +383,13 @@
     <ClCompile Include="..\src\AntTweakBar\TwPrecomp.cpp" />
     <ClCompile Include="..\src\cinder\app\App.cpp" />
     <ClCompile Include="..\src\cinder\app\AppBasic.cpp" />
+    <ClCompile Include="..\src\cinder\app\AppImplFlareRendererDx.cpp" />
     <ClCompile Include="..\src\cinder\app\AppImplMswRendererDx.cpp" />
     <ClCompile Include="..\src\cinder\app\AppImplWinRT.cpp" />
     <ClCompile Include="..\src\cinder\app\AppImplWinRTBasic.cpp" />
     <ClCompile Include="..\src\cinder\app\KeyEvent.cpp" />
     <ClCompile Include="..\src\cinder\app\RendererDx.cpp" />
+    <ClCompile Include="..\src\cinder\app\RendererFlare.cpp" />
     <ClCompile Include="..\src\cinder\app\Window.cpp" />
     <ClCompile Include="..\src\cinder\app\WinRTApp.cpp" />
     <ClCompile Include="..\src\cinder\Area.cpp" />

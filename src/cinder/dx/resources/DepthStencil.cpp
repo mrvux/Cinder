@@ -21,9 +21,8 @@ DepthStencil::Obj::~Obj()
 }
 
 DepthStencil::DepthStencil(DxDevice* device, int w, int h,DXGI_FORMAT format, int samplecount,bool readonly)
-	: mObj( shared_ptr<Obj>( new Obj() ) )
+	: DepthStencilBase(device) , mObj( shared_ptr<Obj>( new Obj() ) )
 {
-	mDevice = device;
 	mWidth = w;
 	mHeight = h;
 	Initialize(mDevice,w,h,format,samplecount,readonly);

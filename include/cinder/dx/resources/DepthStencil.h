@@ -3,6 +3,7 @@
 #include "cinder/Cinder.h"
 #include "cinder/dx/DxDevice.h"
 #include "cinder/dx/utils/DepthFormats.h"
+#include "DepthStencilBase.h"
 #include "Texture2.h"
 
 namespace cinder { namespace dx {
@@ -10,7 +11,7 @@ namespace cinder { namespace dx {
 class DepthStencil;
 typedef std::shared_ptr<DepthStencil> DepthStencilRef;
 
-class DepthStencil
+class DepthStencil : public DepthStencilBase
 {
 public:
 	DepthStencil(DxDevice* device, int w, int h,DXGI_FORMAT format = DXGI_FORMAT_D24_UNORM_S8_UINT, int samplecount = 1, bool readonly=false);
@@ -18,8 +19,8 @@ public:
 
 	void Clear(bool depth = true, bool stencil = true, float depthvalue = 1.0f,BYTE stencilvalue = 0);
 
-	inline ID3D11DepthStencilView* GetDSV() { return mObj->mDSV; }
-	inline ID3D11DepthStencilView* GetReadOnlyDSV() { return mObj->mReadOnlyDSV; }
+	virtual ID3D11DepthStencilView* GetDSV() { return mObj->mDSV; }
+	virtual ID3D11DepthStencilView* GetReadOnlyDSV() { return mObj->mReadOnlyDSV; }
 	inline ID3D11ShaderResourceView* GetSRV() { return mObj->mSRV; }
 	inline int GetWidth() { return mWidth; }
 	inline int GetHeight() { return mHeight; }
@@ -36,8 +37,6 @@ private:
 		ID3D11DepthStencilView* mDSV;
 		ID3D11DepthStencilView* mReadOnlyDSV;
 	};
-
-	DxDevice* mDevice;
 	int mWidth,mHeight;
 
 	std::shared_ptr<Obj>	mObj;

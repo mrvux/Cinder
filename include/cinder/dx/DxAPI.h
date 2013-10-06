@@ -2,6 +2,10 @@
 
 #include "DxDevice.h"
 
+#include "states/BlendStates.h"
+#include "states/DepthStencilStates.h"
+#include "states/RasterizerStates.h"
+
 #include "resources/DepthStencil.h"
 #include "resources/Texture2.h"
 #include "resources/RenderTarget2.h"

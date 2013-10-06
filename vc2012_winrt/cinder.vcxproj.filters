@@ -451,6 +451,12 @@
     <ClInclude Include="..\include\cinder\dx\resources\DepthStencilBase.h">
       <Filter>Header Files\dx\resources</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cinder\app\AppImplFlareRenderer.h">
+      <Filter>Header Files\app</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\app\RendererFlare.h">
+      <Filter>Header Files\app</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cinder\app\App.cpp">
@@ -998,6 +1004,12 @@
     </ClCompile>
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencilBase.cpp">
       <Filter>Source Files\dx\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\app\AppImplFlareRendererDx.cpp">
+      <Filter>Source Files\app</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\app\RendererFlare.cpp">
+      <Filter>Source Files\app</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
