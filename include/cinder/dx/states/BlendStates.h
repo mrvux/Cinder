@@ -15,11 +15,11 @@ public:
 	inline ID3D11BlendState* AlphaBlend() { return mAlphaBlend; }
 	inline ID3D11BlendState* AlphaAdd() { return mAlphaAdd; }
 
-	inline void SetDisabled() { mDevice->GetContext()->OMSetBlendState(mNoBlend,0,0); }
-	inline void SetAlphaBlend() { mDevice->GetContext()->OMSetBlendState(mAlphaBlend,0,0); }
-	inline void SetAlphaAdd() { mDevice->GetContext()->OMSetBlendState(mAlphaAdd,0,0); }
-	inline void SetAdditive() { mDevice->GetContext()->OMSetBlendState(mAdditiveBlend,0,0); }
-	inline void SetMultiply() { mDevice->GetContext()->OMSetBlendState(mMultiply,0,0); }
+	inline void SetDisabled() { mDevice->GetContext()->OMSetBlendState(mNoBlend,0,0xffffffff); }
+	inline void SetAlphaBlend() { mDevice->GetContext()->OMSetBlendState(mAlphaBlend,0,0xffffffff); }
+	inline void SetAlphaAdd() { mDevice->GetContext()->OMSetBlendState(mAlphaAdd,0,0xffffffff); }
+	inline void SetAdditive() { mDevice->GetContext()->OMSetBlendState(mAdditiveBlend,0,0xffffffff); }
+	inline void SetMultiply() { mDevice->GetContext()->OMSetBlendState(mMultiply,0,0xffffffff); }
 private:
 	DxDevice* mDevice;
 	void CreateNoBlend();

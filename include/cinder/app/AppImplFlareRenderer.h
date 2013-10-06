@@ -5,9 +5,6 @@
 #include "cinder/app/RendererFlare.h"
 
 #include "cinder/dx/DxAPI.h"
-/*#include "cinder/dx/DxDevice.h"
-#include "cinder/dx/resources/SwapChain.h"
-#include "cinder/dx/resources/DepthStencil.h"*/
 
 #include "cinder/dx/dx.h"
 #include <d3dcompiler.h>
@@ -41,10 +38,12 @@ class AppImplFlareRenderer : public AppImplMswRenderer {
 
 	RendererFlare	*mRenderer;
 
-	inline ci::dx::IDXContext* GetContext() { return mDevice->GetContext(); }
+	/*inline ci::dx::IDXContext* GetContext() { return mDevice->GetContext(); }
 	inline ci::dx::IDXDevice* GetDevice() { return mDevice->GetDevice(); }
 	inline D3D_FEATURE_LEVEL GetFeatureLevel() { return mDevice->GetFeatureLevel(); }
-	inline ci::dx::DxDevice* GetDxDevice() { return mDevice; }
+	inline ci::dx::DxDevice* GetDxDevice() { return mDevice; }*/
+
+	inline ci::dx::RenderContext* GetRenderContext() { return mRenderContext; }
 
 	inline ci::dx::SwapChain* GetPrimarySwapChain() { return mSwapChain; }
 	inline ci::dx::DepthStencil* GetDepthStencil() { return mDepthStencil; }
@@ -55,9 +54,9 @@ class AppImplFlareRenderer : public AppImplMswRenderer {
 	bool mFullScreen;
 	bool mVsyncEnable;
 
-	//ci::dx::Blen
-
 	ci::dx::DxDevice* mDevice;
+	ci::dx::RenderContext* mRenderContext;
+
 	ci::dx::SwapChain* mSwapChain;
 	ci::dx::DepthStencil* mDepthStencil;
 };

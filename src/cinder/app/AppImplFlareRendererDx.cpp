@@ -59,7 +59,7 @@ void AppImplFlareRenderer::getPlatformWindowDimensions(DX_WINDOW_TYPE wnd, float
 
 void AppImplFlareRenderer::defaultResize() const
 {
-	if(!mSwapChain)
+	/*if(!mSwapChain)
 		return;
 
 	float width, height;
@@ -69,16 +69,10 @@ void AppImplFlareRenderer::defaultResize() const
 	mDevice->GetContext()->OMSetRenderTargets(1, &view, NULL);
 	mDevice->GetContext()->Flush();
 
-	mSwapChain->Resize(2,width,height,DXGI_FORMAT_R8G8B8A8_UNORM);
+	mSwapChain->Resize(2,width,height,DXGI_FORMAT_R8G8B8A8_UNORM);*/
 
-	cinder::CameraPersp cam( static_cast<int>(width), static_cast<int>(height), 60.0f );
 
-	/*dx::setProjection(cam);
-	dx::setModelView(cam);
 
-	//these two lines flip the y-axis and move the origin up
-	dx::multModelView(Matrix44f::createScale(Vec3f(1, -1, 1)));
-	dx::multModelView(Matrix44f::createTranslation(Vec3f(0, -height, 0)));*/
 }
 
 void AppImplFlareRenderer::swapBuffers() const
@@ -92,6 +86,7 @@ void AppImplFlareRenderer::swapBuffers() const
 	HRESULT hr;
 #if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
 	hr = mSwapChain->Present(mVsyncEnable);
+	mRenderContext->GetRenderTargetStack()->ApplyTop();
 	/*( mVsyncEnable )
 		hr = mSwapChain->Present(Present1( 1, 0, &parameters );
 	else
@@ -106,8 +101,8 @@ void AppImplFlareRenderer::swapBuffers() const
 	/*if(hr == DXGI_ERROR_DEVICE_REMOVED)
 		const_cast<AppImplMswRendererDx*>(this)->handleLostDevice();*/
 #if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
-	/*mDevice->GetContext()->DiscardView( mSwapChain->GetRenderTarget()->GetRTV());
-	mDevice->GetContext()->DiscardView( mDepthStencil->GetDSV());*/
+	mDevice->GetContext()->DiscardView( mSwapChain->GetRenderTarget()->GetRTV());
+	mDevice->GetContext()->DiscardView( mDepthStencil->GetDSV());
 #endif
 }
 
@@ -146,6 +141,42 @@ bool AppImplFlareRenderer::initialize( DX_WINDOW_TYPE wnd)
 bool AppImplFlareRenderer::initializeInternal( DX_WINDOW_TYPE wnd )
 {
 	mWnd = wnd;
+
+	try
+	{
+		mDevice = new ci::dx::DxDevice();
+	}
+	catch (dx::DxException exc)
+	{
+		return false;
+	}
+
+	float width, height;
+	getPlatformWindowDimensions(mWnd, &width, &height);
+
+	HRESULT hr;
+	if(mSwapChain)
+	{
+		if (!mSwapChain->Resize(2,width,height,DXGI_FORMAT_R8G8B8A8_UNORM))
+		return false;
+	}
+	else
+	{
+		mSwapChain = new SwapChain(mDevice,reinterpret_cast<IUnknown*>(mWnd.Get()),width,height);
+	}
+
+	try
+	{
+		mDepthStencil = new DepthStencil(mDevice,static_cast<UINT>(width),static_cast<UINT>(height));
+	}
+	catch (DxException exc)
+	{
+		return false;
+	}
+
+	mRenderContext = new RenderContext(mDevice);
+
+	mRenderContext->SetPrimaryBuffer(mSwapChain,mDepthStencil);
 
 	return true;
 }

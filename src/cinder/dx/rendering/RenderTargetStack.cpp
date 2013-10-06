@@ -27,10 +27,15 @@ void RenderBuffer::Init(RenderTargetBase* target1,RenderTargetBase* target2,Rend
 				RenderTargetBase* target5,RenderTargetBase* target6,RenderTargetBase* target7,RenderTargetBase* target8, 
 				UINT targetcount,DepthStencilBase* depth, bool readonlydepth)
 {
-	mRTVs[0] = target1->GetRTV(); mRTVs[1] = target2->GetRTV();
-	mRTVs[2] = target3->GetRTV(); mRTVs[3] = target4->GetRTV();
-	mRTVs[4] = target5->GetRTV(); mRTVs[5] = target6->GetRTV();
-	mRTVs[6] = target7->GetRTV(); mRTVs[7] = target8->GetRTV();
+	mRTVs[0] = target1 ? target1->GetRTV() : NULL; 
+	mRTVs[1] = target2 ? target2->GetRTV() : NULL; 
+	mRTVs[2] = target3 ? target3->GetRTV() : NULL; 
+	mRTVs[3] = target4 ? target4->GetRTV() : NULL; 
+
+	mRTVs[4] = target5 ? target5->GetRTV() : NULL; 
+	mRTVs[5] = target6 ? target6->GetRTV() : NULL; 
+	mRTVs[6] = target7 ? target7->GetRTV() : NULL; 
+	mRTVs[7] = target8 ? target8->GetRTV() : NULL; 
 
 	// TODO : Replace later as we can bind depth only / buffer only
 	mWidth = target1->GetWidth();

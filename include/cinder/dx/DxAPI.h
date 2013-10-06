@@ -23,3 +23,5 @@
 #include "rendering/PrimitiveManager.h"
 #include "rendering/RenderTargetStack.h"
 #include "rendering/ResourcePool.h"
+
+#include "rendering/RenderContext.h"
