@@ -25,13 +25,13 @@ SwapChain::SwapChain(DxDevice* device, IUnknown* window,UINT width, UINT height)
 
 	DXGI_SWAP_CHAIN_DESC1 desc;
 	ZeroMemory(&desc,sizeof(DXGI_SWAP_CHAIN_DESC1));
-	desc.BufferCount = 2;
+	desc.BufferCount = 2; //Set to 1 for windows phone
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
 	desc.Scaling = DXGI_SCALING_STRETCH;
-	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL; // All Windows Store apps must use this SwapEffect.
+	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL; //Windows phone and desktop, prefer DXGI_SWAP_EFFECT_DISCARD
 	desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 	desc.Width = width;
 	desc.Height = height;

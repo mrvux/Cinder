@@ -8,6 +8,9 @@ RenderContext::RenderContext(DxDevice* device)
 	mBlendStates = new BlendStates(device);
 	mRasterizerStates = new RasterizerStates(device);
 	mDepthStencilStates = new DepthStencilStates(device);
+	#if USE_D3D11_1
+	mLogicalBlendStates = new BlendStatesLogical(device);
+	#endif
 	
 	mTargetStack = new RenderTargetStack(device);
 

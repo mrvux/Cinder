@@ -11,6 +11,10 @@
 #include "cinder/dx/resources/SwapChain.h"
 #include "cinder/dx/resources/DepthStencil.h"
 
+#if USE_D3D11_1
+#include "cinder/dx/states/BlendStatesLogical.h"
+#endif
+
 namespace cinder { namespace dx {
 
 class RenderContext
@@ -22,6 +26,9 @@ public:
 	inline BlendStates* GetBlendStates() { return mBlendStates; }
 	inline RasterizerStates* GetRasterizerStates() { return mRasterizerStates; }
 	inline DepthStencilStates* GetDepthStencilStates() { return mDepthStencilStates; }
+	#if USE_D3D11_1
+	inline BlendStatesLogical* GetLogicalBlendStates() { return mLogicalBlendStates; }
+	#endif
 
 	inline RenderTargetStack* GetRenderTargetStack() { return mTargetStack; }
 
@@ -32,6 +39,9 @@ private:
 	BlendStates* mBlendStates;
 	RasterizerStates* mRasterizerStates;
 	DepthStencilStates* mDepthStencilStates;
+	#if USE_D3D11_1
+	BlendStatesLogical* mLogicalBlendStates;
+	#endif
 
 	RenderTargetStack* mTargetStack;
 	

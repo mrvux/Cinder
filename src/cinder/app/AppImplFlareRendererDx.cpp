@@ -86,7 +86,7 @@ void AppImplFlareRenderer::swapBuffers() const
 	HRESULT hr;
 #if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
 	hr = mSwapChain->Present(mVsyncEnable);
-	mRenderContext->GetRenderTargetStack()->ApplyTop();
+	mRenderContext->GetRenderTargetStack()->ApplyTop(); //Not necessary on desktop, RT discards Render target output after present tho.
 	/*( mVsyncEnable )
 		hr = mSwapChain->Present(Present1( 1, 0, &parameters );
 	else

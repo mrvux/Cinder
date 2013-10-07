@@ -606,9 +606,6 @@
     <ClCompile Include="..\src\cinder\Ray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\ImageIo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cinder\DataSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -622,12 +619,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cinder\Buffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cinder\ImageSourceFileWic.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cinder\ImageTargetFileWic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cinder\msw\CinderMsw.cpp">
@@ -958,9 +949,6 @@
       <Filter>Source Files\dx\resources</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencilCube.cpp">
-      <Filter>Source Files\dx\resources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cinder\dx\resources\Effect.cpp">
       <Filter>Source Files\dx\resources</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cinder\dx\resources\IndexBuffer.cpp">

@@ -183,7 +183,8 @@
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;ole32.lib;windowscodecs.lib;oleaut32.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\winrt\;..\lib\winrt\zlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4264 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
@@ -429,7 +430,6 @@
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencilArray.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencilBase.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencilCube.cpp" />
-    <ClCompile Include="..\src\cinder\dx\resources\Effect.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\IndexBuffer.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\RenderTarget2.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\RenderTarget2Array.cpp" />
@@ -448,9 +448,6 @@
     <ClCompile Include="..\src\cinder\dx\states\RasterizerStates.cpp" />
     <ClCompile Include="..\src\cinder\dx\utils\VertexElements.cpp" />
     <ClCompile Include="..\src\cinder\Font.cpp" />
-    <ClCompile Include="..\src\cinder\ImageIo.cpp" />
-    <ClCompile Include="..\src\cinder\ImageSourceFileWic.cpp" />
-    <ClCompile Include="..\src\cinder\ImageTargetFileWic.cpp" />
     <ClCompile Include="..\src\cinder\ip\Blend.cpp" />
     <ClCompile Include="..\src\cinder\ip\EdgeDetect.cpp" />
     <ClCompile Include="..\src\cinder\ip\Fill.cpp" />
