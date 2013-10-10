@@ -469,6 +469,9 @@
     <ClInclude Include="..\include\cinder\dx\resources\IndirectIndexDrawer.h">
       <Filter>Header Files\dx\resources</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cinder\dx\rendering\NullGeometry.h">
+      <Filter>Header Files\dx\rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cinder\app\App.cpp">
@@ -1034,6 +1037,9 @@
     </ClCompile>
     <ClCompile Include="..\src\cinder\ImageTargetFileWic.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\dx\rendering\NullGeometry.cpp">
+      <Filter>Source Files\dx\rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
