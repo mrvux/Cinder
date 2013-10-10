@@ -17,6 +17,8 @@ RenderContext::RenderContext(DxDevice* device)
 	mBlendStates->SetDisabled();
 	mRasterizerStates->SetWireframe();
 	mDepthStencilStates->SetDisabled();
+
+	for (int i = 0; i < 128; i++) { mNullSRVs[i] = NULL; }
 }
 
 void RenderContext::SetPrimaryBuffer(SwapChain* swapchain,DepthStencil* depth)
@@ -34,6 +36,22 @@ void RenderContext::CleanShaderStages()
 	mDevice->GetContext()->PSSetShader(NULL,NULL,0);
 
 	mDevice->GetContext()->CSSetShader(NULL,NULL,0);
+}
+
+void RenderContext::CleanUpSRV()
+{
+	mDevice->GetContext()->VSSetShaderResources(0,128,mNullSRVs);
+	mDevice->GetContext()->HSSetShaderResources(0,128,mNullSRVs);
+	mDevice->GetContext()->DSSetShaderResources(0,128,mNullSRVs);
+	mDevice->GetContext()->GSSetShaderResources(0,128,mNullSRVs);
+	mDevice->GetContext()->PSSetShaderResources(0,128,mNullSRVs);
+
+	mDevice->GetContext()->CSSetShaderResources(0,128,mNullSRVs);
+}
+
+void RenderContext::CleanUpCS()
+{
+	mDevice->GetContext()->CSSetShaderResources(0,128,mNullSRVs);
 }
 
 } }

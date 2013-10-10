@@ -35,6 +35,9 @@ public:
 	void SetPrimaryBuffer(SwapChain* swapchain,DepthStencil* depth);
 
 	inline void CleanShaderStages();
+
+	void CleanUpSRV();
+	void CleanUpCS();
 private:
 	DxDevice* mDevice;
 	BlendStates* mBlendStates;
@@ -45,6 +48,8 @@ private:
 	#endif
 
 	RenderTargetStack* mTargetStack;
+
+	ID3D11ShaderResourceView* mNullSRVs[128];
 	
 };
 
