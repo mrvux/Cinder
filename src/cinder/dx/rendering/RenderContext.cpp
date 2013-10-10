@@ -13,6 +13,9 @@ RenderContext::RenderContext(DxDevice* device)
 	#endif
 	
 	mTargetStack = new RenderTargetStack(device);
+	mGeom = new GeometricPrimitives(device);
+	mResourcePool = new ResourcePool(device);
+	mShaderManager = new ShaderManager(device);
 
 	mBlendStates->SetDisabled();
 	mRasterizerStates->SetWireframe();

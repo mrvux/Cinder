@@ -4,9 +4,9 @@ using namespace ci;
 
 namespace cinder { namespace dx {
 
-IndexedGeometry* GeometricPrimitives::Quad(DxDevice* device)
+IndexedGeometry* GeometricPrimitives::Quad()
 {
-	IndexedGeometry* geom = new IndexedGeometry(device);
+	IndexedGeometry* geom = new IndexedGeometry(mDevice);
 
 	Vec4f v[4] = 
 	{ 
@@ -30,22 +30,22 @@ IndexedGeometry* GeometricPrimitives::Quad(DxDevice* device)
 	elems.clear();
 	elems.push_back(VertexElements::Position4());
 
-	VertexBuffer* vb = VertexBuffer::CreateImmutable(device,&v[0],4,4*sizeof(float),elems); // new VertexBuffer(device,4,4*sizeof(float),v,elems);
+	VertexBuffer* vb = VertexBuffer::CreateImmutable(mDevice,&v[0],4,4*sizeof(float),elems); // new VertexBuffer(device,4,4*sizeof(float),v,elems);
 	geom->AddVertexBuffer(vb);
 
 	elems.clear();
 	elems.push_back(VertexElements::TexCoord2());
 	
-	VertexBuffer* vbuv =VertexBuffer::CreateImmutable(device,&uv[0],4,2*sizeof(float),elems);  //new VertexBuffer(device,4,2*sizeof(float),uv,elems);
+	VertexBuffer* vbuv =VertexBuffer::CreateImmutable(mDevice,&uv[0],4,2*sizeof(float),elems);  //new VertexBuffer(device,4,2*sizeof(float),uv,elems);
 	geom->AddVertexBuffer(vbuv);
 	 
-	IndexBuffer* ib = IndexBuffer::CreateImmutable(device,&indices[0],6); //new IndexBuffer(device,6,&indices[0]);
+	IndexBuffer* ib = IndexBuffer::CreateImmutable(mDevice,&indices[0],6); //new IndexBuffer(device,6,&indices[0]);
 	geom->SetIndexBuffer(ib);
 
 	return geom;
 }
 
-IndexedGeometry* GeometricPrimitives::Box(DxDevice* device)
+IndexedGeometry* GeometricPrimitives::Box()
 {
 	Vec4f BottomLeftFront(-1.0f, -1.0f, 1.0f, 1.0f);
     Vec4f BottomRightFront(1.0f, -1.0f, 1.0f, 1.0f);
@@ -65,7 +65,7 @@ IndexedGeometry* GeometricPrimitives::Box(DxDevice* device)
         Vec2f(1.0f,0.0f),
     };
 
-	IndexedGeometry* geom = new IndexedGeometry(device);
+	IndexedGeometry* geom = new IndexedGeometry(mDevice);
 
 	UINT verticescount = 24;
 	UINT indicescount = 36;
@@ -111,30 +111,30 @@ IndexedGeometry* GeometricPrimitives::Box(DxDevice* device)
 	elems.clear();
 	elems.push_back(VertexElements::Position4());
 
-	VertexBuffer* vbpos = VertexBuffer::CreateImmutable(device,&vpos,24,4*sizeof(float),elems);
+	VertexBuffer* vbpos = VertexBuffer::CreateImmutable(mDevice,&vpos,24,4*sizeof(float),elems);
 	geom->AddVertexBuffer(vbpos);
 
 	elems.clear();
 	elems.push_back(VertexElements::Normal3());
 		 
-	VertexBuffer* vbnorm = VertexBuffer::CreateImmutable(device,&vnorm,24,3*sizeof(float),elems);
+	VertexBuffer* vbnorm = VertexBuffer::CreateImmutable(mDevice,&vnorm,24,3*sizeof(float),elems);
 	geom->AddVertexBuffer(vbnorm);
 
 		elems.clear();
 	elems.push_back(VertexElements::TexCoord2());
 
-	VertexBuffer* vbuv = VertexBuffer::CreateImmutable(device,&vuv,24,2*sizeof(float),elems);
+	VertexBuffer* vbuv = VertexBuffer::CreateImmutable(mDevice,&vuv,24,2*sizeof(float),elems);
 	geom->AddVertexBuffer(vbuv);
 
-	IndexBuffer* ib = IndexBuffer::CreateImmutable(device,&indices,36);
+	IndexBuffer* ib = IndexBuffer::CreateImmutable(mDevice,&indices,36);
 	geom->SetIndexBuffer(ib);
 
 	return geom;
 }
 
-IndexedGeometry* GeometricPrimitives::Segment(DxDevice* device,float phase, float cycles, float inner, UINT res, bool flat)
+IndexedGeometry* GeometricPrimitives::Segment(float phase, float cycles, float inner, UINT res, bool flat)
 {
-	IndexedGeometry* geom = new IndexedGeometry(device);
+	IndexedGeometry* geom = new IndexedGeometry(mDevice);
 
 	D3D11_INPUT_ELEMENT_DESC poselem = VertexElements::Position4();
 	D3D11_INPUT_ELEMENT_DESC uvelem = VertexElements::TexCoord2();
@@ -209,19 +209,25 @@ IndexedGeometry* GeometricPrimitives::Segment(DxDevice* device,float phase, floa
 	elems.clear();
 	elems.push_back(VertexElements::Position4());
 
-	VertexBuffer* vb = VertexBuffer::CreateImmutable(device,vpos,vcount,4*sizeof(float),elems);
+	VertexBuffer* vb = VertexBuffer::CreateImmutable(mDevice,vpos,vcount,4*sizeof(float),elems);
 	geom->AddVertexBuffer(vb);
 
 	elems.clear();
 	elems.push_back(VertexElements::TexCoord2());
 	
-	VertexBuffer* vbuv = VertexBuffer::CreateImmutable(device,uvs,vcount,2*sizeof(float),elems);
+	VertexBuffer* vbuv = VertexBuffer::CreateImmutable(mDevice,uvs,vcount,2*sizeof(float),elems);
 	geom->AddVertexBuffer(vbuv);
 
 	 
-	IndexBuffer* ib = IndexBuffer::CreateImmutable(device,indices,icount);
+	IndexBuffer* ib = IndexBuffer::CreateImmutable(mDevice,indices,icount);
 	geom->SetIndexBuffer(ib);
 
+	return geom;
+}
+
+NullGeometry* GeometricPrimitives::FullScreenTriangle()
+{
+	NullGeometry* geom = new NullGeometry(mDevice,D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST,3);
 	return geom;
 }
 

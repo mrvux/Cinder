@@ -7,9 +7,14 @@
 #include "cinder/dx/states/DepthStencilStates.h"
 
 #include "cinder/dx/rendering/RenderTargetStack.h"
+#include "cinder/dx/rendering/PrimitiveManager.h"
+#include "cinder/dx/rendering/ResourcePool.h"
+#include "cinder/dx/rendering/ShaderManager.h"
 
 #include "cinder/dx/resources/SwapChain.h"
 #include "cinder/dx/resources/DepthStencil.h"
+
+
 
 #if USE_D3D11_1
 #include "cinder/dx/states/BlendStatesLogical.h"
@@ -31,6 +36,9 @@ public:
 	#endif
 
 	inline RenderTargetStack* GetRenderTargetStack() { return mTargetStack; }
+	inline GeometricPrimitives* Geometry() { return mGeom; }
+	inline ResourcePool* GetResourcePool() { return mResourcePool; }
+	inline ShaderManager* GetShaderManager() { return mShaderManager; }
 
 	void SetPrimaryBuffer(SwapChain* swapchain,DepthStencil* depth);
 
@@ -48,6 +56,9 @@ private:
 	#endif
 
 	RenderTargetStack* mTargetStack;
+	GeometricPrimitives* mGeom;
+	ResourcePool* mResourcePool;
+	ShaderManager* mShaderManager;
 
 	ID3D11ShaderResourceView* mNullSRVs[128];
 	

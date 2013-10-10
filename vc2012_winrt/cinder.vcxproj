@@ -298,6 +298,7 @@
     <ClInclude Include="..\include\cinder\dx\rendering\RenderContext.h" />
     <ClInclude Include="..\include\cinder\dx\rendering\RenderTargetStack.h" />
     <ClInclude Include="..\include\cinder\dx\rendering\ResourcePool.h" />
+    <ClInclude Include="..\include\cinder\dx\rendering\ShaderManager.h" />
     <ClInclude Include="..\include\cinder\dx\resources\ByteAddressBuffer.h" />
     <ClInclude Include="..\include\cinder\dx\resources\DepthStencil.h" />
     <ClInclude Include="..\include\cinder\dx\resources\DepthStencilArray.h" />
@@ -430,6 +431,7 @@
     <ClCompile Include="..\src\cinder\dx\rendering\RenderContext.cpp" />
     <ClCompile Include="..\src\cinder\dx\rendering\RenderTargetStack.cpp" />
     <ClCompile Include="..\src\cinder\dx\rendering\ResourcePool.cpp" />
+    <ClCompile Include="..\src\cinder\dx\rendering\ShaderManager.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\ByteAddressBuffer.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencil.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencilArray.cpp" />
