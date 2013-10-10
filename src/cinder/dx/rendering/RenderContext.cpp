@@ -25,4 +25,15 @@ void RenderContext::SetPrimaryBuffer(SwapChain* swapchain,DepthStencil* depth)
 	mTargetStack->Push(b);
 }
 
+void RenderContext::CleanShaderStages()
+{
+	mDevice->GetContext()->VSSetShader(NULL,NULL,0);
+	mDevice->GetContext()->HSSetShader(NULL,NULL,0);
+	mDevice->GetContext()->DSSetShader(NULL,NULL,0);
+	mDevice->GetContext()->GSSetShader(NULL,NULL,0);
+	mDevice->GetContext()->PSSetShader(NULL,NULL,0);
+
+	mDevice->GetContext()->CSSetShader(NULL,NULL,0);
+}
+
 } }

@@ -33,7 +33,8 @@ public:
 	inline RenderTargetStack* GetRenderTargetStack() { return mTargetStack; }
 
 	void SetPrimaryBuffer(SwapChain* swapchain,DepthStencil* depth);
-	
+
+	inline void CleanShaderStages();
 private:
 	DxDevice* mDevice;
 	BlendStates* mBlendStates;
