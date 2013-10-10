@@ -18,10 +18,15 @@
 #include "resources/StructuredBuffer.h"
 
 #include "resources/IndirectDrawer.h"
+#include "resources/IndirectDispatcher.h"
+#include "resources/IndirectIndexDrawer.h"
 
 #include "resources/Effect.h"
 
 #include "rendering/IndexedGeometry.h"
+#include "rendering/NullGeometry.h"
+
+
 #include "rendering/PrimitiveManager.h"
 #include "rendering/RenderTargetStack.h"
 #include "rendering/ResourcePool.h"
