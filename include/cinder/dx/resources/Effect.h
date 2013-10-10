@@ -17,8 +17,6 @@ class Texture2;
 class Effect
 {
 public:
-	Effect(DxDevice* device, cinder::fs::path filepath);
-	Effect(DxDevice* device, ci::DataSourceRef datasource);
 	~Effect(void);
 
 	void SelectTechnique(int index, UINT passindex = 0);
@@ -50,7 +48,13 @@ public:
 
 	inline ID3DX11EffectPass* GetCurrentPass() { return this->mCurrentPass; }
 	inline ID3DX11EffectTechnique* GetCurrentTechnique() { return this->mCurrentTechnique; }
+
+	static Effect* CreateCompiled(DxDevice* device, ci::DataSourceRef datasource);
+	static Effect* CreateCompiled(DxDevice* device, void* bytecode, UINT length);
+	static Effect* Compile(DxDevice* device, ci::DataSourceRef datasource);
 private:
+	Effect(DxDevice* device, void* bytecode, UINT length);
+
 	DxDevice* mDevice;
 
 	ID3DX11Effect* mEffect;

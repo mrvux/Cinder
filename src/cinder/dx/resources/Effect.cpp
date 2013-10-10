@@ -4,38 +4,35 @@
 
 namespace cinder { namespace dx {
 
-
-
-Effect::Effect(DxDevice* device, cinder::fs::path filepath)
+Effect::Effect(DxDevice* device, void* bytecode, UINT length)
 {
 	mDevice = device;
 
-	ID3DBlob* pShader = NULL;
-	ID3DBlob* pErrors = NULL;
-
-	UINT flags= D3DCOMPILE_OPTIMIZATION_LEVEL1 | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR;
-	D3DCompileFromFile((LPCWSTR)filepath.string().c_str(),NULL,NULL,NULL,"fx_5_0",flags,0,&pShader,&pErrors);
-
-	D3DX11CreateEffectFromMemory(pShader->GetBufferPointer(),pShader->GetBufferSize(),flags,mDevice->GetDevice(),&mEffect);
+	D3DX11CreateEffectFromMemory(bytecode,length,0,mDevice->GetDevice(),&mEffect);
 
 	this->SelectTechnique(0);
 	this->SelectPass(0);
 }
 
-Effect::Effect(DxDevice* device, ci::DataSourceRef datasource)
+Effect* Effect::CreateCompiled(DxDevice* device, void* bytecode, UINT length)
 {
-	mDevice = device;
+	return new Effect(device,bytecode,length);
+}
 
+Effect* Effect::CreateCompiled(DxDevice* device, ci::DataSourceRef datasource)
+{
+	return new Effect(device,datasource->getBuffer().getData(),datasource->getBuffer().getDataSize());
+}
+
+Effect* Effect::Compile(DxDevice* device, ci::DataSourceRef datasource)
+{
 	ID3DBlob* pShader = NULL;
 	ID3DBlob* pErrors = NULL;
 
 	UINT flags= D3DCOMPILE_OPTIMIZATION_LEVEL1 | D3DCOMPILE_PACK_MATRIX_ROW_MAJOR;
 	HRESULT hr = D3DCompile(datasource->getBuffer().getData(),datasource->getBuffer().getDataSize(),NULL,NULL,NULL,NULL,"fx_5_0",flags,0,&pShader,&pErrors);
-	
-	D3DX11CreateEffectFromMemory(pShader->GetBufferPointer(),pShader->GetBufferSize(),flags,mDevice->GetDevice(),&mEffect);
 
-	this->SelectTechnique(0);
-	this->SelectPass(0);
+	return new Effect(device,pShader->GetBufferPointer(),pShader->GetBufferSize());
 }
 
 void Effect::SetByName(LPCSTR name, Texture2* texture)
