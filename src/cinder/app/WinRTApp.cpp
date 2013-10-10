@@ -74,6 +74,7 @@ void WinRTApp::SetWindow(CoreWindow^ window)
 	window->Closed += 
         ref new TypedEventHandler<CoreWindow^, CoreWindowEventArgs^>(this, &WinRTApp::OnWindowClosed);
 
+	// TODO : Remove this line when compile for Phone
 	window->PointerCursor = ref new CoreCursor(CoreCursorType::Arrow, 0);
 
 	window->PointerReleased +=

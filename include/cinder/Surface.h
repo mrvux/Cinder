@@ -45,7 +45,7 @@ class SurfaceChannelOrder {
 	SurfaceChannelOrder( int aCode );
 	SurfaceChannelOrder( const SurfaceChannelOrder &aOrder );
 		
-//	static ChannelOrder	GetPlatformNativeChannelOrder( bool includeAlpha );
+	//static ChannelOrder	GetPlatformNativeChannelOrder( bool includeAlpha );
 	
 	uint8_t		getRedOffset() const { return mRed; }
 	uint8_t		getGreenOffset() const { return mGreen; }

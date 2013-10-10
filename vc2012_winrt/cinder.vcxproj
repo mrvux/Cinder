@@ -304,6 +304,9 @@
     <ClInclude Include="..\include\cinder\dx\resources\DepthStencilCube.h" />
     <ClInclude Include="..\include\cinder\dx\resources\Effect.h" />
     <ClInclude Include="..\include\cinder\dx\resources\IndexBuffer.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\IndirectDispatcher.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\IndirectDrawer.h" />
+    <ClInclude Include="..\include\cinder\dx\resources\IndirectIndexDrawer.h" />
     <ClInclude Include="..\include\cinder\dx\resources\RenderTarget2.h" />
     <ClInclude Include="..\include\cinder\dx\resources\RenderTarget2Array.h" />
     <ClInclude Include="..\include\cinder\dx\resources\RenderTarget3.h" />
@@ -430,7 +433,11 @@
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencilArray.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencilBase.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\DepthStencilCube.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\Effect.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\IndexBuffer.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\IndirectDispatcher.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\IndirectDrawer.cpp" />
+    <ClCompile Include="..\src\cinder\dx\resources\IndirectIndexDrawer.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\RenderTarget2.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\RenderTarget2Array.cpp" />
     <ClCompile Include="..\src\cinder\dx\resources\RenderTarget3.cpp" />
@@ -448,6 +455,9 @@
     <ClCompile Include="..\src\cinder\dx\states\RasterizerStates.cpp" />
     <ClCompile Include="..\src\cinder\dx\utils\VertexElements.cpp" />
     <ClCompile Include="..\src\cinder\Font.cpp" />
+    <ClCompile Include="..\src\cinder\ImageIo.cpp" />
+    <ClCompile Include="..\src\cinder\ImageSourceFileWic.cpp" />
+    <ClCompile Include="..\src\cinder\ImageTargetFileWic.cpp" />
     <ClCompile Include="..\src\cinder\ip\Blend.cpp" />
     <ClCompile Include="..\src\cinder\ip\EdgeDetect.cpp" />
     <ClCompile Include="..\src\cinder\ip\Fill.cpp" />

@@ -17,11 +17,15 @@
 #include "resources/ByteAddressBuffer.h"
 #include "resources/StructuredBuffer.h"
 
+#include "resources/IndirectDrawer.h"
+
 #include "resources/Effect.h"
 
 #include "rendering/IndexedGeometry.h"
 #include "rendering/PrimitiveManager.h"
 #include "rendering/RenderTargetStack.h"
 #include "rendering/ResourcePool.h"
+
+
 
 #include "rendering/RenderContext.h"
